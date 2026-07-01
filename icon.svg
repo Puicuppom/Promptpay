@@ -7,30 +7,5 @@
     </linearGradient>
   </defs>
   <rect width="512" height="512" fill="url(#bg)"/>
-  <!-- การ์ด QR -->
-  <rect x="72" y="64" width="368" height="340" rx="40" fill="#fff"/>
-  <!-- finder TL -->
-  <rect x="96" y="88" width="84" height="84" fill="#00468C"/>
-  <rect x="108" y="100" width="60" height="60" fill="#fff"/>
-  <rect x="120" y="112" width="36" height="36" fill="#00468C"/>
-  <!-- finder TR -->
-  <rect x="332" y="88" width="84" height="84" fill="#00468C"/>
-  <rect x="344" y="100" width="60" height="60" fill="#fff"/>
-  <rect x="356" y="112" width="36" height="36" fill="#00468C"/>
-  <!-- finder BL -->
-  <rect x="96" y="268" width="84" height="84" fill="#00468C"/>
-  <rect x="108" y="280" width="60" height="60" fill="#fff"/>
-  <rect x="120" y="292" width="36" height="36" fill="#00468C"/>
-  <!-- จุดกลาง -->
-  <rect x="228" y="196" width="24" height="24" fill="#00468C"/>
-  <rect x="260" y="196" width="24" height="24" fill="#00468C"/>
-  <rect x="228" y="228" width="24" height="24" fill="#00468C"/>
-  <rect x="260" y="260" width="24" height="24" fill="#00468C"/>
-  <!-- แถบ QR Payment -->
-  <rect x="72" y="368" width="368" height="52" fill="#00468C"/>
-  <text x="108" y="402" fill="#fff" font-family="Prompt,sans-serif" font-size="28" font-weight="700">฿</text>
-  <rect x="148" y="388" width="220" height="8" rx="4" fill="#fff" opacity="0.9"/>
-  <rect x="148" y="404" width="150" height="6" rx="3" fill="#fff" opacity="0.7"/>
-  <!-- PromptPay -->
-  <text x="256" y="462" fill="#fff" font-family="Prompt,sans-serif" font-size="34" font-weight="700" text-anchor="middle">PromptPay</text>
+  <text x="256" y="268" fill="#fff" font-family="Prompt,sans-serif" font-size="72" font-weight="700" text-anchor="middle">PromptPay</text>
 </svg>
