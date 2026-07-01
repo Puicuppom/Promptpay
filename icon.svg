@@ -1,19 +1,13 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <defs>
-    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#1e3a8a"/>
-      <stop offset="100%" stop-color="#3b82f6"/>
-    </linearGradient>
-  </defs>
-  <rect width="512" height="512" rx="96" fill="url(#bg)"/>
+  <rect width="512" height="512" rx="96" fill="#0a2a6e"/>
   <rect x="96" y="96" width="320" height="320" rx="24" fill="#fff"/>
-  <rect x="128" y="128" width="80" height="80" rx="8" fill="#1e3a8a"/>
-  <rect x="240" y="128" width="48" height="48" rx="6" fill="#1e3a8a"/>
-  <rect x="304" y="128" width="80" height="80" rx="8" fill="#1e3a8a"/>
-  <rect x="128" y="240" width="48" height="48" rx="6" fill="#1e3a8a"/>
-  <rect x="208" y="240" width="96" height="48" rx="6" fill="#06b6d4"/>
-  <rect x="336" y="240" width="48" height="48" rx="6" fill="#1e3a8a"/>
-  <rect x="128" y="304" width="80" height="80" rx="8" fill="#1e3a8a"/>
-  <rect x="240" y="336" width="48" height="48" rx="6" fill="#1e3a8a"/>
-  <rect x="304" y="304" width="80" height="80" rx="8" fill="#1e3a8a"/>
+  <rect x="128" y="128" width="72" height="72" rx="8" fill="#0a2a6e"/>
+  <rect x="224" y="128" width="48" height="48" rx="6" fill="#0a2a6e"/>
+  <rect x="296" y="128" width="72" height="72" rx="8" fill="#0a2a6e"/>
+  <rect x="128" y="224" width="48" height="48" rx="6" fill="#0a2a6e"/>
+  <rect x="192" y="224" width="96" height="48" rx="6" fill="#1565c0"/>
+  <rect x="312" y="224" width="56" height="48" rx="6" fill="#0a2a6e"/>
+  <rect x="128" y="296" width="72" height="72" rx="8" fill="#0a2a6e"/>
+  <rect x="224" y="320" width="48" height="48" rx="6" fill="#0a2a6e"/>
+  <rect x="296" y="296" width="72" height="72" rx="8" fill="#0a2a6e"/>
 </svg>

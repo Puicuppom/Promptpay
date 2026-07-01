@@ -1,32 +1,19 @@
-# QR รับเงิน (QR-PUI)
+# พร้อมเพย์ — QR รับเงิน
 
-เว็บแอปสร้าง QR พร้อมเพย์และ QR ธนาคารสำหรับรับเงิน ติดตั้งบนหน้าจอมือถือได้
+เว็บแอปสร้าง QR พร้อมเพย์มาตรฐาน EMV สำหรับรับเงิน ติดตั้งบนหน้าจอมือถือได้
 
 ## ฟีเจอร์
 
-- สร้าง QR พร้อมเพย์จาก **เบอร์โทร** หรือ **เลขบัตรประชาชน**
-- ตั้งค่าข้อมูลได้ผ่านปุ่ม ⚙️ (บันทึกในเบราว์เซอร์)
+- สร้าง QR พร้อมเพย์จาก **เบอร์โทรศัพท์** หรือ **บัตรประชาชน**
+- ตั้งค่าข้อมูลผ่านปุ่ม ⚙️ (บันทึกในเบราว์เซอร์)
 - ใส่จำนวนเงินได้ (ไม่บังคับ)
-- แสดง QR ธนาคาร (กสิกร / Make / TTB)
-- บันทึกและแชร์ QR ได้
+- บันทึกและแชร์ QR พร้อมแถบ Thai QR Payment
 
-## วิธี Deploy บน GitHub Pages
+## ลิงก์แอป
 
-1. สร้าง repo ชื่อ `Promptpay` ที่ GitHub (หรือใช้ [Puicuppom/Promptpay](https://github.com/Puicuppom/Promptpay))
-2. Push โค้ดขึ้น branch `main`
-3. ไปที่ **Settings → Pages → Build and deployment**
-4. เลือก **Source: GitHub Actions**
-5. รอ workflow รันเสร็จ แล้วเปิด **https://puicuppom.github.io/Promptpay/**
-
-## รูป QR ธนาคาร
-
-วางไฟล์รูปในโฟลเดอร์ `images/`:
-
-- `qr-kbank.png`
-- `qr-make.png`
-- `qr-ttb.png`
+**https://puicuppom.github.io/Promptpay/**
 
 ## ติดตั้งเป็นแอปบนมือถือ
 
-- **Android (Chrome):** เมนู ⋮ → Add to Home screen
-- **iPhone (Safari):** ปุ่ม Share → Add to Home Screen
+- **Android:** Chrome → ⋮ → Add to Home screen
+- **iPhone:** Safari → Share → Add to Home Screen

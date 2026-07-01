@@ -3,196 +3,166 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <meta name="theme-color" content="#1e3a8a">
+    <meta name="theme-color" content="#0a2a6e">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="QR รับเงิน">
+    <meta name="apple-mobile-web-app-title" content="พร้อมเพย์">
     <link rel="manifest" href="manifest.json">
     <link rel="icon" href="icon.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="icon.svg">
-    <title>QR รับเงิน</title>
+    <title>พร้อมเพย์ — รับเงิน</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
         :root {
-            --pp-blue: #1e3a8a;
-            --pp-light: #3b82f6;
-            --pp-accent: #06b6d4;
-            --bg-start: #0f172a;
-            --bg-end: #1e293b;
-            --card: rgba(255, 255, 255, 0.97);
-            --text: #0f172a;
-            --muted: #64748b;
-            --border: #e2e8f0;
-            --shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35);
-            --radius: 20px;
+            --pp-navy: #0a2a6e;
+            --pp-blue: #1565c0;
+            --pp-sky: #42a5f5;
+            --pp-gold: #f5a623;
+            --pp-bg: #eef2f8;
+            --text: #1a1a2e;
+            --muted: #6b7280;
+            --white: #ffffff;
+            --radius: 16px;
         }
 
-        * { box-sizing: border-box; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
 
         body {
             font-family: 'Sarabun', sans-serif;
-            margin: 0;
-            min-height: 100vh;
-            background: linear-gradient(145deg, var(--bg-start) 0%, var(--bg-end) 50%, #0c4a6e 100%);
+            background: var(--pp-bg);
             color: var(--text);
-            display: flex;
-            justify-content: center;
-            align-items: flex-start;
-            padding: 24px 16px 40px;
+            min-height: 100vh;
+            min-height: 100dvh;
         }
 
-        .app {
-            width: 100%;
-            max-width: 420px;
-        }
-
-        .top-bar {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 20px;
-            color: #fff;
-        }
-
-        .brand {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .brand-icon {
-            width: 44px;
-            height: 44px;
-            background: linear-gradient(135deg, var(--pp-light), var(--pp-accent));
-            border-radius: 14px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 22px;
-            box-shadow: 0 8px 20px rgba(59, 130, 246, 0.4);
-        }
-
-        .brand h1 {
-            margin: 0;
-            font-size: 22px;
-            font-weight: 700;
-            letter-spacing: -0.02em;
-        }
-
-        .brand p {
-            margin: 2px 0 0;
-            font-size: 13px;
-            opacity: 0.75;
-        }
-
-        .icon-btn {
-            width: 44px;
-            height: 44px;
-            border: none;
-            border-radius: 14px;
-            background: rgba(255, 255, 255, 0.12);
-            backdrop-filter: blur(8px);
-            color: #fff;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: background 0.2s, transform 0.15s;
-        }
-
-        .icon-btn:hover {
-            background: rgba(255, 255, 255, 0.2);
-            transform: scale(1.05);
-        }
-
-        .icon-btn svg { width: 22px; height: 22px; fill: currentColor; }
-
-        .card {
-            background: var(--card);
-            border-radius: var(--radius);
-            box-shadow: var(--shadow);
+        /* ── Header ── */
+        .pp-header {
+            background: linear-gradient(160deg, var(--pp-navy) 0%, var(--pp-blue) 100%);
+            padding: max(env(safe-area-inset-top), 16px) 20px 48px;
+            position: relative;
             overflow: hidden;
         }
 
-        .tabs {
-            display: flex;
-            padding: 6px;
-            background: #f1f5f9;
-            margin: 16px 16px 0;
-            border-radius: 14px;
-            gap: 4px;
+        .pp-header::before {
+            content: '';
+            position: absolute;
+            top: -60px; right: -60px;
+            width: 200px; height: 200px;
+            background: rgba(255,255,255,0.06);
+            border-radius: 50%;
         }
 
-        .tab {
+        .pp-header::after {
+            content: '';
+            position: absolute;
+            bottom: -30px; left: -40px;
+            width: 160px; height: 160px;
+            background: rgba(255,255,255,0.04);
+            border-radius: 50%;
+        }
+
+        .header-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: relative;
+            z-index: 1;
+        }
+
+        .settings-btn {
+            width: 40px; height: 40px;
+            border: 1.5px solid rgba(255,255,255,0.25);
+            border-radius: 12px;
+            background: rgba(255,255,255,0.1);
+            color: #fff;
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            transition: background 0.2s;
+        }
+
+        .settings-btn:hover { background: rgba(255,255,255,0.2); }
+        .settings-btn svg { width: 20px; height: 20px; fill: currentColor; }
+
+        .pp-logo-wrap {
+            text-align: center;
+            position: relative;
+            z-index: 1;
+            margin-top: 20px;
+        }
+
+        .pp-logo {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .pp-logo-icon {
+            width: 48px; height: 48px;
+            background: var(--white);
+            border-radius: 14px;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+        }
+
+        .pp-logo-icon svg { width: 32px; height: 32px; }
+
+        .pp-logo-text {
+            text-align: left;
+        }
+
+        .pp-logo-text .thai {
+            font-size: 28px;
+            font-weight: 800;
+            color: #fff;
+            letter-spacing: -0.5px;
+            line-height: 1;
+        }
+
+        .pp-logo-text .sub {
+            font-size: 13px;
+            color: rgba(255,255,255,0.75);
+            font-weight: 500;
+            margin-top: 2px;
+        }
+
+        .header-title {
+            text-align: center;
+            color: rgba(255,255,255,0.9);
+            font-size: 15px;
+            font-weight: 500;
+            margin-top: 16px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ── Main ── */
+        .pp-main {
+            max-width: 440px;
+            margin: -28px auto 0;
+            padding: 0 16px 32px;
+            position: relative;
+            z-index: 2;
+        }
+
+        /* Mode tabs */
+        .mode-tabs {
+            display: flex;
+            background: var(--white);
+            border-radius: var(--radius);
+            padding: 4px;
+            box-shadow: 0 2px 12px rgba(10,42,110,0.1);
+            margin-bottom: 16px;
+        }
+
+        .mode-tab {
             flex: 1;
             border: none;
             background: transparent;
             padding: 12px 8px;
-            border-radius: 10px;
-            font-family: inherit;
-            font-size: 15px;
-            font-weight: 600;
-            color: var(--muted);
-            cursor: pointer;
-            transition: all 0.25s;
-        }
-
-        .tab.active {
-            background: #fff;
-            color: var(--pp-blue);
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-        }
-
-        .panel { display: none; padding: 20px 20px 24px; }
-        .panel.active { display: block; animation: fadeUp 0.35s ease; }
-
-        @keyframes fadeUp {
-            from { opacity: 0; transform: translateY(8px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .promptpay-header {
-            text-align: center;
-            margin-bottom: 18px;
-        }
-
-        .promptpay-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            background: linear-gradient(135deg, var(--pp-blue), var(--pp-light));
-            color: #fff;
-            padding: 6px 14px;
-            border-radius: 999px;
-            font-size: 13px;
-            font-weight: 600;
-            margin-bottom: 8px;
-        }
-
-        .promptpay-header h2 {
-            margin: 0;
-            font-size: 18px;
-            font-weight: 700;
-        }
-
-        .mode-switch {
-            display: flex;
-            background: #f8fafc;
-            border: 1.5px solid var(--border);
-            border-radius: 14px;
-            padding: 4px;
-            margin-bottom: 18px;
-        }
-
-        .mode-btn {
-            flex: 1;
-            border: none;
-            background: transparent;
-            padding: 11px 10px;
-            border-radius: 10px;
+            border-radius: 12px;
             font-family: inherit;
             font-size: 14px;
             font-weight: 600;
@@ -205,61 +175,67 @@
             transition: all 0.25s;
         }
 
-        .mode-btn.active {
-            background: linear-gradient(135deg, var(--pp-blue), var(--pp-light));
+        .mode-tab svg { width: 18px; height: 18px; fill: currentColor; flex-shrink: 0; }
+
+        .mode-tab.active {
+            background: var(--pp-navy);
             color: #fff;
-            box-shadow: 0 4px 12px rgba(30, 58, 138, 0.3);
+            box-shadow: 0 4px 12px rgba(10,42,110,0.3);
         }
 
-        .mode-btn svg { width: 18px; height: 18px; fill: currentColor; }
-
-        .amount-field {
-            margin-bottom: 18px;
+        /* Amount card */
+        .amount-card {
+            background: var(--white);
+            border-radius: var(--radius);
+            padding: 16px 18px;
+            box-shadow: 0 2px 12px rgba(10,42,110,0.08);
+            margin-bottom: 16px;
         }
 
-        .amount-field label {
-            display: block;
+        .amount-label {
             font-size: 13px;
             font-weight: 600;
             color: var(--muted);
-            margin-bottom: 6px;
+            margin-bottom: 8px;
         }
 
-        .amount-input-wrap {
+        .amount-row {
             display: flex;
             align-items: center;
-            background: #f8fafc;
-            border: 1.5px solid var(--border);
-            border-radius: 12px;
-            overflow: hidden;
-            transition: border-color 0.2s, box-shadow 0.2s;
+            gap: 4px;
         }
 
-        .amount-input-wrap:focus-within {
-            border-color: var(--pp-light);
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
-        }
-
-        .amount-prefix {
-            padding: 0 14px;
+        .amount-currency {
+            font-size: 24px;
             font-weight: 700;
-            color: var(--pp-blue);
-            background: #eef2ff;
-            align-self: stretch;
-            display: flex;
-            align-items: center;
+            color: var(--pp-navy);
         }
 
-        .amount-input-wrap input {
+        .amount-input {
             flex: 1;
             border: none;
-            background: transparent;
-            padding: 14px 14px 14px 0;
             font-family: inherit;
-            font-size: 20px;
-            font-weight: 600;
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--text);
             outline: none;
+            background: transparent;
+            min-width: 0;
         }
+
+        .amount-input::placeholder {
+            color: #d1d5db;
+            font-weight: 600;
+        }
+
+        .amount-display {
+            font-size: 32px;
+            font-weight: 800;
+            color: var(--pp-navy);
+            display: none;
+        }
+
+        .amount-display.show { display: block; }
 
         .amount-hint {
             font-size: 12px;
@@ -267,158 +243,151 @@
             margin-top: 6px;
         }
 
-        .qr-frame {
-            background: linear-gradient(160deg, #f0f9ff 0%, #fff 40%);
-            border: 1.5px solid #dbeafe;
-            border-radius: 18px;
-            padding: 24px 20px;
-            text-align: center;
-        }
-
-        .qr-canvas-wrap {
-            background: #fff;
-            border-radius: 14px;
-            padding: 16px;
-            display: inline-block;
-            box-shadow: 0 4px 20px rgba(30, 58, 138, 0.08);
+        /* QR Card — mimics real PromptPay */
+        .qr-card {
+            background: var(--white);
+            border-radius: var(--radius);
+            box-shadow: 0 4px 24px rgba(10,42,110,0.12);
+            overflow: hidden;
             margin-bottom: 16px;
         }
 
+        .qr-card-top {
+            padding: 24px 24px 0;
+            text-align: center;
+        }
+
+        .qr-wrapper {
+            display: inline-block;
+            position: relative;
+            padding: 12px;
+            background: #fff;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+        }
+
         #promptpayQr {
-            width: 220px;
-            height: 220px;
-            display: inline-flex;
+            width: 240px;
+            height: 240px;
+            display: flex;
             align-items: center;
             justify-content: center;
         }
 
         #promptpayQr img {
-            display: block;
-            width: 220px !important;
-            height: 220px !important;
+            display: block !important;
+            width: 240px !important;
+            height: 240px !important;
         }
 
-        .account-name {
-            font-size: 17px;
+        /* Thai QR Payment stripe */
+        .thai-qr-stripe {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            background: linear-gradient(90deg, #0a2a6e, #1565c0);
+            padding: 10px 16px;
+            margin-top: 16px;
+        }
+
+        .thai-qr-stripe .qr-icon {
+            width: 28px; height: 28px;
+            background: #fff;
+            border-radius: 4px;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .thai-qr-stripe .qr-icon svg { width: 20px; height: 20px; }
+
+        .thai-qr-stripe span {
+            color: #fff;
+            font-size: 13px;
             font-weight: 700;
-            margin: 0 0 4px;
+            letter-spacing: 0.5px;
         }
 
-        .account-detail {
+        .qr-card-bottom {
+            padding: 20px 24px 24px;
+            text-align: center;
+            border-top: 1px solid #f3f4f6;
+        }
+
+        .recipient-name {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 6px;
+        }
+
+        .recipient-id {
             font-size: 14px;
             color: var(--muted);
-            margin: 0;
         }
 
-        .account-detail span {
-            font-weight: 600;
+        .recipient-id strong {
             color: var(--pp-blue);
-            letter-spacing: 0.03em;
+            font-weight: 600;
         }
 
+        .amount-badge {
+            display: none;
+            margin-top: 12px;
+            background: #eff6ff;
+            border: 1.5px solid #bfdbfe;
+            border-radius: 10px;
+            padding: 8px 16px;
+            font-size: 20px;
+            font-weight: 800;
+            color: var(--pp-navy);
+        }
+
+        .amount-badge.show { display: inline-block; }
+
+        /* Actions */
         .actions {
-            display: flex;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
             gap: 10px;
-            margin-top: 18px;
         }
 
-        .btn {
-            flex: 1;
+        .action-btn {
             border: none;
-            border-radius: 12px;
-            padding: 13px 16px;
+            border-radius: 14px;
+            padding: 14px;
             font-family: inherit;
             font-size: 15px;
             font-weight: 600;
             cursor: pointer;
-            display: inline-flex;
+            display: flex;
             align-items: center;
             justify-content: center;
             gap: 8px;
             transition: transform 0.15s, box-shadow 0.2s;
         }
 
-        .btn:active { transform: scale(0.98); }
+        .action-btn:active { transform: scale(0.97); }
+        .action-btn svg { width: 20px; height: 20px; fill: currentColor; }
 
-        .btn-primary {
-            background: linear-gradient(135deg, var(--pp-blue), var(--pp-light));
+        .action-btn.outline {
+            background: var(--white);
+            color: var(--pp-navy);
+            border: 1.5px solid #d1d5db;
+        }
+
+        .action-btn.primary {
+            background: linear-gradient(135deg, var(--pp-navy), var(--pp-blue));
             color: #fff;
-            box-shadow: 0 4px 14px rgba(30, 58, 138, 0.35);
+            box-shadow: 0 4px 14px rgba(10,42,110,0.3);
         }
 
-        .btn-primary:hover { box-shadow: 0 6px 20px rgba(30, 58, 138, 0.45); }
-
-        .btn-secondary {
-            background: #f1f5f9;
-            color: var(--text);
-        }
-
-        .btn-secondary:hover { background: #e2e8f0; }
-
-        .btn svg { width: 18px; height: 18px; fill: currentColor; }
-
-        /* Bank panel */
-        .bank-select-wrap {
-            position: relative;
-            margin-bottom: 20px;
-        }
-
-        .bank-select {
-            appearance: none;
-            width: 100%;
-            background: #f8fafc;
-            border: 1.5px solid var(--border);
-            border-radius: 12px;
-            padding: 14px 44px 14px 16px;
-            font-family: inherit;
-            font-size: 16px;
-            font-weight: 500;
-            color: var(--text);
-            cursor: pointer;
-            transition: border-color 0.2s;
-        }
-
-        .bank-select:focus {
-            outline: none;
-            border-color: var(--pp-light);
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
-        }
-
-        .bank-select-wrap::after {
-            content: '';
-            position: absolute;
-            right: 16px;
-            top: 50%;
-            transform: translateY(-50%);
-            border: 5px solid transparent;
-            border-top-color: var(--muted);
-            pointer-events: none;
-        }
-
-        .bank-qr { display: none; text-align: center; animation: fadeUp 0.35s ease; }
-        .bank-qr.active { display: block; }
-
-        .bank-qr img {
-            width: 100%;
-            max-width: 260px;
-            border-radius: 12px;
-            margin-bottom: 14px;
-        }
-
-        .bank-qr .bank-name { font-size: 18px; font-weight: 700; margin: 0 0 4px; }
-        .bank-qr .account-info { font-size: 14px; color: var(--muted); margin: 0; }
-
-        .empty-state {
+        .footer-note {
             text-align: center;
-            padding: 40px 20px;
+            font-size: 12px;
             color: var(--muted);
-        }
-
-        .empty-state svg {
-            width: 48px;
-            height: 48px;
-            fill: #cbd5e1;
-            margin-bottom: 12px;
+            margin-top: 20px;
+            line-height: 1.6;
         }
 
         /* Settings modal */
@@ -426,29 +395,26 @@
             display: none;
             position: fixed;
             inset: 0;
-            background: rgba(15, 23, 42, 0.6);
+            background: rgba(10,42,110,0.5);
             backdrop-filter: blur(4px);
             z-index: 100;
             align-items: flex-end;
             justify-content: center;
-            padding: 16px;
         }
 
-        .overlay.open {
-            display: flex;
-            animation: fadeIn 0.25s ease;
-        }
+        .overlay.open { display: flex; animation: fadeIn 0.2s ease; }
 
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
         .modal {
             background: #fff;
-            border-radius: 24px 24px 20px 20px;
+            border-radius: 24px 24px 0 0;
             width: 100%;
-            max-width: 420px;
-            max-height: 85vh;
+            max-width: 440px;
+            max-height: 88vh;
             overflow-y: auto;
             animation: slideUp 0.3s ease;
+            padding-bottom: max(env(safe-area-inset-bottom), 16px);
         }
 
         @keyframes slideUp {
@@ -456,29 +422,58 @@
             to { transform: translateY(0); }
         }
 
+        .modal-handle {
+            width: 40px; height: 4px;
+            background: #d1d5db;
+            border-radius: 2px;
+            margin: 12px auto 0;
+        }
+
         .modal-header {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 20px 20px 12px;
-            border-bottom: 1px solid var(--border);
-            position: sticky;
-            top: 0;
-            background: #fff;
-            z-index: 1;
+            padding: 16px 20px;
         }
 
         .modal-header h3 {
-            margin: 0;
             font-size: 18px;
             font-weight: 700;
+            color: var(--pp-navy);
         }
 
-        .modal-body { padding: 16px 20px 24px; }
-
-        .form-group {
-            margin-bottom: 18px;
+        .modal-close {
+            width: 36px; height: 36px;
+            border: none;
+            border-radius: 10px;
+            background: #f3f4f6;
+            color: #374151;
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
         }
+
+        .modal-close svg { width: 20px; height: 20px; fill: currentColor; }
+
+        .modal-body { padding: 0 20px 20px; }
+
+        .form-section {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--pp-blue);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin: 20px 0 10px;
+            padding-top: 16px;
+            border-top: 1px solid #f3f4f6;
+        }
+
+        .form-section:first-child {
+            margin-top: 0;
+            padding-top: 0;
+            border-top: none;
+        }
+
+        .form-group { margin-bottom: 14px; }
 
         .form-group label {
             display: block;
@@ -490,7 +485,7 @@
 
         .form-group input {
             width: 100%;
-            border: 1.5px solid var(--border);
+            border: 1.5px solid #e5e7eb;
             border-radius: 12px;
             padding: 12px 14px;
             font-family: inherit;
@@ -500,27 +495,12 @@
 
         .form-group input:focus {
             outline: none;
-            border-color: var(--pp-light);
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
-        }
-
-        .form-section-title {
-            font-size: 14px;
-            font-weight: 700;
-            color: var(--pp-blue);
-            margin: 24px 0 12px;
-            padding-top: 8px;
-            border-top: 1px solid var(--border);
-        }
-
-        .form-section-title:first-child {
-            margin-top: 0;
-            padding-top: 0;
-            border-top: none;
+            border-color: var(--pp-blue);
+            box-shadow: 0 0 0 3px rgba(21,101,192,0.12);
         }
 
         .form-hint {
-            font-size: 12px;
+            font-size: 11px;
             color: var(--muted);
             margin-top: 4px;
         }
@@ -528,16 +508,26 @@
         .save-btn {
             width: 100%;
             margin-top: 8px;
+            border: none;
+            border-radius: 14px;
+            padding: 15px;
+            font-family: inherit;
+            font-size: 16px;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--pp-navy), var(--pp-blue));
+            color: #fff;
+            cursor: pointer;
+            box-shadow: 0 4px 14px rgba(10,42,110,0.3);
         }
 
         .toast {
             position: fixed;
-            bottom: 24px;
+            bottom: max(env(safe-area-inset-bottom), 24px);
             left: 50%;
             transform: translateX(-50%) translateY(80px);
-            background: #0f172a;
+            background: var(--pp-navy);
             color: #fff;
-            padding: 12px 20px;
+            padding: 12px 22px;
             border-radius: 999px;
             font-size: 14px;
             font-weight: 500;
@@ -545,6 +535,7 @@
             transition: all 0.35s ease;
             z-index: 200;
             pointer-events: none;
+            white-space: nowrap;
         }
 
         .toast.show {
@@ -554,148 +545,122 @@
     </style>
 </head>
 <body>
-    <div class="app">
-        <div class="top-bar">
-            <div class="brand">
-                <div class="brand-icon">💳</div>
-                <div>
-                    <h1>QR รับเงิน</h1>
-                    <p>สแกนจ่ายได้ทันที</p>
+    <header class="pp-header">
+        <div class="header-row">
+            <div style="width:40px"></div>
+            <div class="pp-logo-wrap" style="margin-top:0">
+                <div class="pp-logo">
+                    <div class="pp-logo-icon">
+                        <svg viewBox="0 0 32 32" fill="none">
+                            <rect width="32" height="32" rx="6" fill="#0a2a6e"/>
+                            <path d="M8 10h4v4H8v-4zm10 0h4v4h-4v-4zM8 18h4v4H8v-4zm5 0h4v4h-4v-4zm5 0h4v4h-4v-4z" fill="#fff"/>
+                        </svg>
+                    </div>
+                    <div class="pp-logo-text">
+                        <div class="thai">พร้อมเพย์</div>
+                        <div class="sub">PromptPay</div>
+                    </div>
                 </div>
             </div>
-            <button class="icon-btn" id="settingsBtn" aria-label="ตั้งค่า">
+            <button class="settings-btn" id="settingsBtn" aria-label="ตั้งค่า">
                 <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.31.06-.63.06-.94 0-.31-.02-.63-.06-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.04.31-.06.63-.06.94s.02.63.06.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
             </button>
         </div>
+        <p class="header-title">สแกน QR เพื่อโอนเงิน</p>
+    </header>
 
-        <div class="card">
-            <div class="tabs">
-                <button class="tab active" data-tab="promptpay">พร้อมเพย์</button>
-                <button class="tab" data-tab="bank">ธนาคาร</button>
+    <main class="pp-main">
+        <div class="mode-tabs">
+            <button class="mode-tab active" data-mode="phone">
+                <svg viewBox="0 0 24 24"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg>
+                เบอร์โทรศัพท์
+            </button>
+            <button class="mode-tab" data-mode="idcard">
+                <svg viewBox="0 0 24 24"><path d="M20 4H4c-1.11 0-1.99.89-1.99 2L2 18c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V6c0-1.11-.89-2-2-2zm0 14H4v-6h16v6zm0-10H4V6h16v2z"/></svg>
+                บัตรประชาชน
+            </button>
+        </div>
+
+        <div class="amount-card">
+            <div class="amount-label">จำนวนเงิน (ไม่บังคับ)</div>
+            <div class="amount-row">
+                <span class="amount-currency">฿</span>
+                <input type="number" class="amount-input" id="amountInput" placeholder="0.00" min="0" step="0.01" inputmode="decimal">
             </div>
+            <p class="amount-hint">เว้นว่างไว้ = QR รับเงินทั่วไป</p>
+        </div>
 
-            <!-- PromptPay Panel -->
-            <div class="panel active" id="panel-promptpay">
-                <div class="promptpay-header">
-                    <div class="promptpay-badge">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
-                        PromptPay
+        <div class="qr-card" id="qrCard">
+            <div class="qr-card-top">
+                <div class="qr-wrapper">
+                    <div id="promptpayQr"></div>
+                </div>
+                <div class="thai-qr-stripe">
+                    <div class="qr-icon">
+                        <svg viewBox="0 0 20 20" fill="none">
+                            <rect x="2" y="2" width="6" height="6" rx="1" fill="#0a2a6e"/>
+                            <rect x="12" y="2" width="6" height="6" rx="1" fill="#0a2a6e"/>
+                            <rect x="2" y="12" width="6" height="6" rx="1" fill="#0a2a6e"/>
+                            <rect x="12" y="12" width="3" height="3" fill="#0a2a6e"/>
+                            <rect x="15" y="15" width="3" height="3" fill="#1565c0"/>
+                        </svg>
                     </div>
-                    <h2>สแกนจ่ายผ่านพร้อมเพย์</h2>
-                </div>
-
-                <div class="mode-switch">
-                    <button class="mode-btn active" data-mode="phone">
-                        <svg viewBox="0 0 24 24"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg>
-                        เบอร์โทร
-                    </button>
-                    <button class="mode-btn" data-mode="idcard">
-                        <svg viewBox="0 0 24 24"><path d="M20 4H4c-1.11 0-1.99.89-1.99 2L2 18c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V6c0-1.11-.89-2-2-2zm0 14H4v-6h16v6zm0-10H4V6h16v2z"/></svg>
-                        เลขบัตร
-                    </button>
-                </div>
-
-                <div class="amount-field">
-                    <label for="amountInput">จำนวนเงิน (ไม่บังคับ)</label>
-                    <div class="amount-input-wrap">
-                        <span class="amount-prefix">฿</span>
-                        <input type="number" id="amountInput" placeholder="0.00" min="0" step="0.01" inputmode="decimal">
-                    </div>
-                    <p class="amount-hint">เว้นว่าง = QR รับเงินทั่วไป (ไม่ระบุจำนวน)</p>
-                </div>
-
-                <div class="qr-frame">
-                    <div class="qr-canvas-wrap">
-                        <div id="promptpayQr"></div>
-                    </div>
-                    <p class="account-name" id="displayName">-</p>
-                    <p class="account-detail" id="displayDetail">-</p>
-                </div>
-
-                <div class="actions">
-                    <button class="btn btn-secondary" id="downloadBtn">
-                        <svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
-                        บันทึก
-                    </button>
-                    <button class="btn btn-primary" id="shareBtn" style="display:none;">
-                        <svg viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92-1.31-2.92-2.92-2.92z"/></svg>
-                        แชร์
-                    </button>
+                    <span>THAI QR PAYMENT</span>
                 </div>
             </div>
-
-            <!-- Bank Panel -->
-            <div class="panel" id="panel-bank">
-                <div class="bank-select-wrap">
-                    <select id="bankSelector" class="bank-select">
-                        <option value="">-- เลือกธนาคาร --</option>
-                        <option value="kbank">ธนาคารกสิกรไทย</option>
-                        <option value="make">Make by Kbank</option>
-                        <option value="ttb">ธนาคาร TTB</option>
-                    </select>
-                </div>
-                <div id="bankQrArea">
-                    <div class="empty-state" id="bankEmpty">
-                        <svg viewBox="0 0 24 24"><path d="M4 8h4V4H4v4zm6 12h4v-4h-4v4zm-6 0h4v-4H4v4zm0-6h4v-4H4v4zm6 0h4v-4h-4v4zm6-10v4h4V4h-4zm-6 4h4V4h-4v4zm6 6h4v-4h-4v4zm0 6h4v-4h-4v4z"/></svg>
-                        <p>เลือกธนาคารเพื่อแสดง QR</p>
-                    </div>
-                    <div id="kbank-qr" class="bank-qr">
-                        <img src="images/qr-kbank.png" alt="QR Code กสิกรไทย">
-                        <p class="bank-name">ธนาคารกสิกรไทย</p>
-                        <p class="account-info" data-account-name></p>
-                    </div>
-                    <div id="make-qr" class="bank-qr">
-                        <img src="images/qr-make.png" alt="QR Code Make by Kbank">
-                        <p class="bank-name">Make by Kbank</p>
-                        <p class="account-info" data-account-name></p>
-                    </div>
-                    <div id="ttb-qr" class="bank-qr">
-                        <img src="images/qr-ttb.png" alt="QR Code TTB">
-                        <p class="bank-name">ธนาคาร TTB</p>
-                        <p class="account-info" data-account-name></p>
-                    </div>
-                </div>
-                <div class="actions" id="bankActions" style="display:none; margin-top:16px;">
-                    <button class="btn btn-primary" id="bankShareBtn" style="flex:1;">
-                        <svg viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92-1.31-2.92-2.92-2.92z"/></svg>
-                        แชร์รูปภาพ
-                    </button>
-                </div>
+            <div class="qr-card-bottom">
+                <p class="recipient-name" id="displayName">-</p>
+                <p class="recipient-id" id="displayDetail">-</p>
+                <div class="amount-badge" id="amountBadge"></div>
             </div>
         </div>
-    </div>
 
-    <!-- Settings Modal -->
+        <div class="actions">
+            <button class="action-btn outline" id="downloadBtn">
+                <svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+                บันทึก QR
+            </button>
+            <button class="action-btn primary" id="shareBtn" style="display:none;">
+                <svg viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92-1.31-2.92-2.92-2.92z"/></svg>
+                แชร์
+            </button>
+        </div>
+
+        <p class="footer-note">QR Code มาตรฐาน EMV PromptPay<br>สแกนผ่านแอปธนาคารทุกแห่งได้</p>
+    </main>
+
+    <!-- Settings -->
     <div class="overlay" id="settingsOverlay">
         <div class="modal">
+            <div class="modal-handle"></div>
             <div class="modal-header">
-                <h3>⚙️ ตั้งค่า</h3>
-                <button class="icon-btn" id="closeSettings" style="background:#f1f5f9; color:#334155; width:36px; height:36px;">
+                <h3>ตั้งค่าบัญชี</h3>
+                <button class="modal-close" id="closeSettings" aria-label="ปิด">
                     <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
                 </button>
             </div>
             <div class="modal-body">
-                <div class="form-section-title">ข้อมูลทั่วไป</div>
+                <div class="form-section">ข้อมูลผู้รับเงิน</div>
                 <div class="form-group">
-                    <label for="cfgName">ชื่อบัญชี / ชื่อผู้รับเงิน</label>
+                    <label for="cfgName">ชื่อ-นามสกุล</label>
                     <input type="text" id="cfgName" placeholder="เช่น นายวนัส ฉัตรชฎานุกูล">
                 </div>
 
-                <div class="form-section-title">พร้อมเพย์ — เบอร์โทร</div>
+                <div class="form-section">พร้อมเพย์ — เบอร์โทรศัพท์</div>
                 <div class="form-group">
-                    <label for="cfgPhone">เบอร์มือถือ</label>
+                    <label for="cfgPhone">เบอร์มือถือ 10 หลัก</label>
                     <input type="tel" id="cfgPhone" placeholder="0812345678" inputmode="tel">
-                    <p class="form-hint">ใส่เบอร์ 10 หลัก ขึ้นต้นด้วย 0</p>
+                    <p class="form-hint">ขึ้นต้นด้วย 0 เช่น 0812345678</p>
                 </div>
 
-                <div class="form-section-title">พร้อมเพย์ — เลขบัตรประชาชน</div>
+                <div class="form-section">พร้อมเพย์ — บัตรประชาชน</div>
                 <div class="form-group">
                     <label for="cfgIdcard">เลขบัตรประชาชน 13 หลัก</label>
                     <input type="text" id="cfgIdcard" placeholder="1234567890123" inputmode="numeric" maxlength="13">
-                    <p class="form-hint">ใช้เลขบัตรที่ลงทะเบียนพร้อมเพย์แล้ว</p>
+                    <p class="form-hint">เลขที่ลงทะเบียนพร้อมเพย์แล้ว</p>
                 </div>
 
-                <button class="btn btn-primary save-btn" id="saveSettings">บันทึกการตั้งค่า</button>
+                <button class="save-btn" id="saveSettings">บันทึก</button>
             </div>
         </div>
     </div>
@@ -710,11 +675,8 @@
         };
 
         const STORAGE_KEY = 'qr-pui-config';
-        const baseUrl = new URL('.', window.location.href).href;
-
         let config = loadConfig();
         let currentMode = 'phone';
-        let currentBankImageUrl = '';
 
         function loadConfig() {
             try {
@@ -735,7 +697,6 @@
             setTimeout(() => toast.classList.remove('show'), 2500);
         }
 
-        /* ── PromptPay EMV QR ── */
         function tlv(id, value) {
             return id + String(value.length).padStart(2, '0') + value;
         }
@@ -760,14 +721,10 @@
         }
 
         function generatePromptPayPayload(mode, rawId, amount) {
-            let idValue, idTag;
-            if (mode === 'phone') {
-                idValue = formatPhoneForPromptPay(rawId);
-                idTag = '01';
-            } else {
-                idValue = rawId.replace(/\D/g, '');
-                idTag = '02';
-            }
+            const idValue = mode === 'phone'
+                ? formatPhoneForPromptPay(rawId)
+                : rawId.replace(/\D/g, '');
+            const idTag = mode === 'phone' ? '01' : '02';
 
             let merchant = tlv('00', 'A000000677010111');
             merchant += idTag + String(idValue.length).padStart(2, '0') + idValue;
@@ -777,9 +734,7 @@
             payload += hasAmount ? '010212' : '010211';
             payload += tlv('29', merchant);
             payload += tlv('53', '764');
-            if (hasAmount) {
-                payload += tlv('54', parseFloat(amount).toFixed(2));
-            }
+            if (hasAmount) payload += tlv('54', parseFloat(amount).toFixed(2));
             payload += tlv('58', 'TH');
             payload += '6304';
             payload += crc16ccitt(payload);
@@ -788,55 +743,133 @@
 
         function formatDisplayPhone(phone) {
             const d = phone.replace(/\D/g, '');
-            if (d.length === 10) return d.replace(/(\d{3})(\d{3})(\d{4})/, '$1-$2-$3');
-            return phone;
-        }
-
-        function formatDisplayIdcard(id) {
-            const d = id.replace(/\D/g, '');
-            if (d.length === 13) return d.replace(/(\d{1})(\d{4})(\d{5})(\d{2})(\d{1})/, '$1-$2-$3-$4-$5');
-            return id;
+            return d.length === 10 ? d.replace(/(\d{3})(\d{3})(\d{4})/, '$1-$2-$3') : phone;
         }
 
         function maskIdcard(id) {
             const d = id.replace(/\D/g, '');
-            if (d.length === 13) return d.slice(0, 1) + '-XXXX-XXXXX-' + d.slice(10, 12) + '-' + d.slice(12);
-            return id;
+            return d.length === 13
+                ? d.slice(0, 1) + '-XXXX-XXXXX-' + d.slice(10, 12) + '-' + d.slice(12)
+                : id;
+        }
+
+        function formatAmount(val) {
+            const n = parseFloat(val);
+            if (!n || n <= 0) return null;
+            return n.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+
+        function renderPromptPayQR() {
+            const container = document.getElementById('promptpayQr');
+            const rawId = currentMode === 'phone' ? config.phone : config.idcard;
+            const amountVal = document.getElementById('amountInput').value;
+            const formatted = formatAmount(amountVal);
+
+            document.getElementById('displayName').textContent = config.accountName || 'ไม่ได้ตั้งชื่อ';
+
+            const detail = document.getElementById('displayDetail');
+            if (currentMode === 'phone') {
+                detail.innerHTML = 'พร้อมเพย์ ID: <strong>' + formatDisplayPhone(rawId) + '</strong>';
+            } else {
+                detail.innerHTML = 'พร้อมเพย์ ID: <strong>' + maskIdcard(rawId) + '</strong>';
+            }
+
+            const badge = document.getElementById('amountBadge');
+            if (formatted) {
+                badge.textContent = '฿ ' + formatted;
+                badge.classList.add('show');
+            } else {
+                badge.classList.remove('show');
+            }
+
+            const payload = generatePromptPayPayload(currentMode, rawId, amountVal);
+            container.innerHTML = '';
+            if (typeof QRCode !== 'undefined') {
+                new QRCode(container, {
+                    text: payload,
+                    width: 240,
+                    height: 240,
+                    colorDark: '#000000',
+                    colorLight: '#ffffff',
+                    correctLevel: QRCode.CorrectLevel.M
+                });
+            }
         }
 
         function getQrImage() {
             return document.querySelector('#promptpayQr img');
         }
 
-        function renderPromptPayQR() {
-            const container = document.getElementById('promptpayQr');
-            const rawId = currentMode === 'phone' ? config.phone : config.idcard;
-            const amount = document.getElementById('amountInput').value;
+        async function exportQRImage() {
+            const img = getQrImage();
+            if (!img) return null;
 
-            const displayName = document.getElementById('displayName');
-            const displayDetail = document.getElementById('displayDetail');
+            const canvas = document.createElement('canvas');
+            const w = 400, h = 560;
+            canvas.width = w;
+            canvas.height = h;
+            const ctx = canvas.getContext('2d');
 
-            displayName.textContent = config.accountName || 'ไม่ได้ตั้งชื่อ';
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, w, h);
 
-            if (currentMode === 'phone') {
-                displayDetail.innerHTML = 'เบอร์โทร: <span>' + formatDisplayPhone(rawId) + '</span>';
-            } else {
-                displayDetail.innerHTML = 'เลขบัตร: <span>' + maskIdcard(rawId) + '</span>';
+            const qrSize = 260;
+            const qrX = (w - qrSize) / 2;
+            ctx.drawImage(img, qrX, 40, qrSize, qrSize);
+
+            const stripeY = 40 + qrSize + 16;
+            const grad = ctx.createLinearGradient(0, stripeY, w, stripeY);
+            grad.addColorStop(0, '#0a2a6e');
+            grad.addColorStop(1, '#1565c0');
+            ctx.fillStyle = grad;
+            ctx.fillRect(40, stripeY, w - 80, 36);
+            ctx.fillStyle = '#fff';
+            ctx.font = 'bold 14px Sarabun, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('THAI QR PAYMENT', w / 2, stripeY + 23);
+
+            ctx.fillStyle = '#1a1a2e';
+            ctx.font = 'bold 18px Sarabun, sans-serif';
+            ctx.fillText(config.accountName, w / 2, stripeY + 70);
+
+            ctx.fillStyle = '#6b7280';
+            ctx.font = '14px Sarabun, sans-serif';
+            const idText = currentMode === 'phone'
+                ? formatDisplayPhone(config.phone)
+                : maskIdcard(config.idcard);
+            ctx.fillText('พร้อมเพย์ ID: ' + idText, w / 2, stripeY + 96);
+
+            const amount = formatAmount(document.getElementById('amountInput').value);
+            if (amount) {
+                ctx.fillStyle = '#0a2a6e';
+                ctx.font = 'bold 22px Sarabun, sans-serif';
+                ctx.fillText('฿ ' + amount, w / 2, stripeY + 130);
             }
 
-            const payload = generatePromptPayPayload(currentMode, rawId, amount);
+            return canvas;
+        }
 
-            container.innerHTML = '';
-            if (typeof QRCode !== 'undefined') {
-                new QRCode(container, {
-                    text: payload,
-                    width: 220,
-                    height: 220,
-                    colorDark: '#1e3a8a',
-                    colorLight: '#ffffff',
-                    correctLevel: QRCode.CorrectLevel.M
-                });
-            }
+        async function downloadQR() {
+            const canvas = await exportQRImage();
+            if (!canvas) return;
+            const link = document.createElement('a');
+            link.download = 'promptpay-qr.png';
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+            showToast('✓ บันทึก QR แล้ว');
+        }
+
+        async function shareQR() {
+            const canvas = await exportQRImage();
+            if (!canvas) return;
+            canvas.toBlob(async (blob) => {
+                const file = new File([blob], 'promptpay-qr.png', { type: 'image/png' });
+                if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                    await navigator.share({ files: [file], title: 'QR พร้อมเพย์', text: config.accountName });
+                } else {
+                    showToast('เบราว์เซอร์ไม่รองรับการแชร์');
+                }
+            }, 'image/png');
         }
 
         function openSettings() {
@@ -856,139 +889,39 @@
             config.idcard = document.getElementById('cfgIdcard').value.trim();
             saveConfig();
             closeSettings();
-            updateAccountNames();
             renderPromptPayQR();
-            showToast('✓ บันทึกการตั้งค่าแล้ว');
-        }
-
-        function updateAccountNames() {
-            document.querySelectorAll('[data-account-name]').forEach(el => {
-                el.textContent = 'ชื่อบัญชี: ' + config.accountName;
-            });
-        }
-
-        async function downloadQR() {
-            const img = getQrImage();
-            if (!img) return;
-            const link = document.createElement('a');
-            link.download = 'promptpay-qr.png';
-            link.href = img.src;
-            link.click();
-            showToast('✓ บันทึกรูปแล้ว');
-        }
-
-        async function sharePromptPayQR() {
-            const img = getQrImage();
-            if (!img) return;
-            try {
-                const response = await fetch(img.src);
-                const blob = await response.blob();
-                const file = new File([blob], 'promptpay-qr.png', { type: 'image/png' });
-                if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                    await navigator.share({
-                        files: [file],
-                        title: 'QR พร้อมเพย์',
-                        text: config.accountName
-                    });
-                } else {
-                    showToast('เบราว์เซอร์ไม่รองรับการแชร์');
-                }
-            } catch (e) {
-                showToast('ไม่สามารถแชร์ได้');
-            }
-        }
-
-        async function shareBankImage() {
-            if (!currentBankImageUrl) return;
-            try {
-                const response = await fetch(currentBankImageUrl);
-                const blob = await response.blob();
-                const file = new File([blob], 'qr-bank.png', { type: blob.type });
-                if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                    await navigator.share({
-                        files: [file],
-                        title: 'QR Code สำหรับชำระเงิน',
-                        text: config.accountName
-                    });
-                } else {
-                    showToast('ไม่สามารถแชร์ไฟล์นี้ได้');
-                }
-            } catch (e) {
-                console.error(e);
-            }
+            showToast('✓ บันทึกแล้ว');
         }
 
         document.addEventListener('DOMContentLoaded', () => {
-            /* Tabs */
-            document.querySelectorAll('.tab').forEach(tab => {
+            document.querySelectorAll('.mode-tab').forEach(tab => {
                 tab.addEventListener('click', () => {
-                    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-                    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+                    document.querySelectorAll('.mode-tab').forEach(t => t.classList.remove('active'));
                     tab.classList.add('active');
-                    document.getElementById('panel-' + tab.dataset.tab).classList.add('active');
-                });
-            });
-
-            /* Mode switch */
-            document.querySelectorAll('.mode-btn').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
-                    btn.classList.add('active');
-                    currentMode = btn.dataset.mode;
+                    currentMode = tab.dataset.mode;
                     renderPromptPayQR();
                 });
             });
 
-            /* Amount */
             document.getElementById('amountInput').addEventListener('input', () => {
-                clearTimeout(window._amountTimer);
-                window._amountTimer = setTimeout(renderPromptPayQR, 400);
+                clearTimeout(window._amtTimer);
+                window._amtTimer = setTimeout(renderPromptPayQR, 350);
             });
 
-            /* Settings */
             document.getElementById('settingsBtn').addEventListener('click', openSettings);
             document.getElementById('closeSettings').addEventListener('click', closeSettings);
             document.getElementById('saveSettings').addEventListener('click', applySettings);
-            document.getElementById('settingsOverlay').addEventListener('click', (e) => {
+            document.getElementById('settingsOverlay').addEventListener('click', e => {
                 if (e.target === e.currentTarget) closeSettings();
             });
 
-            /* Actions */
             document.getElementById('downloadBtn').addEventListener('click', downloadQR);
-            if (navigator.share) {
-                document.getElementById('shareBtn').style.display = 'inline-flex';
-                document.getElementById('shareBtn').addEventListener('click', sharePromptPayQR);
-            }
-
-            /* Bank selector */
-            const bankSelector = document.getElementById('bankSelector');
-            const bankQrs = document.querySelectorAll('.bank-qr');
-            const bankEmpty = document.getElementById('bankEmpty');
-            const bankActions = document.getElementById('bankActions');
-
-            bankSelector.addEventListener('change', function () {
-                bankQrs.forEach(q => q.classList.remove('active'));
-                if (this.value) {
-                    bankEmpty.style.display = 'none';
-                    const selected = document.getElementById(this.value + '-qr');
-                    if (selected) {
-                        selected.classList.add('active');
-                        const img = selected.querySelector('img');
-                        currentBankImageUrl = new URL(img.getAttribute('src'), baseUrl).href;
-                        if (navigator.share) bankActions.style.display = 'flex';
-                    }
-                } else {
-                    bankEmpty.style.display = 'block';
-                    currentBankImageUrl = '';
-                    bankActions.style.display = 'none';
-                }
-            });
 
             if (navigator.share) {
-                document.getElementById('bankShareBtn').addEventListener('click', shareBankImage);
+                document.getElementById('shareBtn').style.display = 'flex';
+                document.getElementById('shareBtn').addEventListener('click', shareQR);
             }
 
-            updateAccountNames();
             renderPromptPayQR();
         });
     </script>

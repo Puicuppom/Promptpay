@@ -1,11 +1,11 @@
 {
-  "name": "QR รับเงิน",
-  "short_name": "QR-PUI",
-  "description": "สร้าง QR พร้อมเพย์และ QR ธนาคารสำหรับรับเงิน",
+  "name": "พร้อมเพย์ — รับเงิน",
+  "short_name": "พร้อมเพย์",
+  "description": "สร้าง QR พร้อมเพย์สำหรับรับเงิน",
   "start_url": "./",
   "display": "standalone",
-  "background_color": "#0f172a",
-  "theme_color": "#1e3a8a",
+  "background_color": "#0a2a6e",
+  "theme_color": "#0a2a6e",
   "orientation": "portrait",
   "lang": "th",
   "icons": [
