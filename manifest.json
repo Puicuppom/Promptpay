@@ -1,19 +1,12 @@
 {
-  "name": "พร้อมเพย์ — รับเงิน",
+  "name": "พร้อมเพย์",
   "short_name": "พร้อมเพย์",
   "description": "สร้าง QR พร้อมเพย์สำหรับรับเงิน",
   "start_url": "./",
   "display": "standalone",
-  "background_color": "#0a2a6e",
-  "theme_color": "#0a2a6e",
+  "background_color": "#00468C",
+  "theme_color": "#00468C",
   "orientation": "portrait",
   "lang": "th",
-  "icons": [
-    {
-      "src": "icon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
-      "purpose": "any maskable"
-    }
-  ]
+  "icons": [{ "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }]
 }
