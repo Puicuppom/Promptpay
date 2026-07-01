@@ -190,16 +190,26 @@
         }
 
         #promptpayQr {
+            width: var(--qr-size, 200px);
+            height: var(--qr-size, 200px);
+            flex-shrink: 0;
             display: flex;
             align-items: center;
             justify-content: center;
+            overflow: hidden;
             line-height: 0;
         }
 
-        #promptpayQr img {
+        #promptpayQr table { display: none !important; }
+
+        #promptpayQr img,
+        #promptpayQr canvas {
             display: block !important;
-            width: var(--qr-size, 200px) !important;
-            height: var(--qr-size, 200px) !important;
+            width: 100% !important;
+            height: 100% !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            object-fit: contain;
         }
 
         .thai-bar {
@@ -574,6 +584,49 @@
         .ios-steps ol {
             margin: 8px 0 0 18px;
         }
+
+        /* Preview สำหรับบันทึกรูปบน iOS */
+        .preview-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 300;
+            background: rgba(0,0,0,0.85);
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .preview-overlay.open { display: flex; }
+
+        .preview-overlay img {
+            max-width: 100%;
+            max-height: 70vh;
+            border-radius: 12px;
+            background: #fff;
+        }
+
+        .preview-hint {
+            color: #fff;
+            text-align: center;
+            margin-top: 16px;
+            font-size: 15px;
+            line-height: 1.6;
+        }
+
+        .preview-close {
+            margin-top: 20px;
+            border: none;
+            background: #fff;
+            color: var(--pp-blue);
+            font-family: inherit;
+            font-size: 16px;
+            font-weight: 600;
+            padding: 12px 32px;
+            border-radius: 12px;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
@@ -664,6 +717,13 @@
                 <button class="btn-save" id="saveSettings">บันทึก</button>
             </div>
         </div>
+    </div>
+
+    <!-- Preview บันทึกรูป -->
+    <div class="preview-overlay" id="previewOverlay">
+        <img id="previewImg" alt="QR PromptPay">
+        <p class="preview-hint">กดค้างที่รูป → <strong>บันทึกลงรูปภาพ</strong><br>แล้วแชร์ใน LINE ได้เลย</p>
+        <button class="preview-close" id="previewClose">ปิด</button>
     </div>
 
     <div class="toast" id="toast"></div>
@@ -849,44 +909,94 @@
                     colorLight: '#ffffff',
                     correctLevel: QRCode.CorrectLevel.M
                 });
+                const table = container.querySelector('table');
+                if (table) table.remove();
             }
         }
 
-        function getQrImg() { return document.querySelector('#promptpayQr img'); }
+        function getQrElement() {
+            const c = document.getElementById('promptpayQr');
+            return c.querySelector('img') || c.querySelector('canvas');
+        }
 
-        function createHighResQr(size) {
-            return new Promise(resolve => {
+        function buildQrOffscreen(size) {
+            return new Promise((resolve, reject) => {
                 const wrap = document.createElement('div');
-                wrap.style.cssText = 'position:fixed;left:-9999px;top:0';
+                wrap.style.cssText = 'position:fixed;left:-9999px;top:0;width:' + size + 'px;height:' + size + 'px';
                 document.body.appendChild(wrap);
+
                 const rawId = currentMode === 'phone' ? config.phone : config.idcard;
                 const amountVal = document.getElementById('amountInput').value;
-                new QRCode(wrap, {
-                    text: generatePayload(currentMode, rawId, amountVal),
-                    width: size,
-                    height: size,
-                    colorDark: '#000000',
-                    colorLight: '#ffffff',
-                    correctLevel: QRCode.CorrectLevel.M
-                });
-                const check = () => {
+
+                try {
+                    new QRCode(wrap, {
+                        text: generatePayload(currentMode, rawId, amountVal),
+                        width: size,
+                        height: size,
+                        colorDark: '#000000',
+                        colorLight: '#ffffff',
+                        correctLevel: QRCode.CorrectLevel.M
+                    });
+                } catch (err) {
+                    document.body.removeChild(wrap);
+                    reject(err);
+                    return;
+                }
+
+                const table = wrap.querySelector('table');
+                if (table) table.remove();
+
+                const done = () => {
                     const img = wrap.querySelector('img');
-                    if (img?.complete && img.naturalWidth) {
-                        resolve({ img, wrap });
-                    } else if (img) {
-                        img.onload = () => resolve({ img, wrap });
-                    } else {
-                        requestAnimationFrame(check);
+                    const canvas = wrap.querySelector('canvas');
+                    if (img?.src) {
+                        const finish = () => resolve({ el: img, wrap, isCanvas: false });
+                        if (img.complete && img.naturalWidth) finish();
+                        else img.onload = finish;
+                        return true;
                     }
+                    if (canvas) {
+                        resolve({ el: canvas, wrap, isCanvas: true });
+                        return true;
+                    }
+                    return false;
                 };
-                check();
+
+                if (!done()) {
+                    setTimeout(() => {
+                        if (!done()) {
+                            document.body.removeChild(wrap);
+                            reject(new Error('QR render failed'));
+                        }
+                    }, 500);
+                }
             });
         }
 
-        /* รูป export 900px อ่านง่ายใน LINE */
+        function drawQrOn(ctx, source, x, y, size) {
+            ctx.drawImage(source, x, y, size, size);
+        }
+
+        function wrapText(ctx, text, maxW) {
+            const words = text.split('');
+            let line = '';
+            const lines = [];
+            for (let i = 0; i < words.length; i++) {
+                const test = line + words[i];
+                if (ctx.measureText(test).width > maxW && line) {
+                    lines.push(line);
+                    line = words[i];
+                } else {
+                    line = test;
+                }
+            }
+            if (line) lines.push(line);
+            return lines;
+        }
+
         async function exportImage() {
             const qrSize = 560;
-            const { img, wrap } = await createHighResQr(qrSize);
+            const { el, wrap } = await buildQrOffscreen(qrSize);
 
             const W = 900;
             const pad = 48;
@@ -894,8 +1004,7 @@
             const canvas = document.createElement('canvas');
             const ctx = canvas.getContext('2d');
 
-            const amountVal = document.getElementById('amountInput').value;
-            const formatted = fmtAmount(amountVal);
+            const formatted = fmtAmount(document.getElementById('amountInput').value);
             const infoH = formatted ? 160 : 110;
             canvas.width = W;
             canvas.height = pad + qrSize + barH + infoH + pad;
@@ -903,62 +1012,123 @@
             ctx.fillStyle = '#ffffff';
             ctx.fillRect(0, 0, W, canvas.height);
 
-            ctx.drawImage(img, (W - qrSize) / 2, pad, qrSize, qrSize);
+            drawQrOn(ctx, el, (W - qrSize) / 2, pad, qrSize);
             document.body.removeChild(wrap);
 
             const barY = pad + qrSize;
             ctx.fillStyle = PP_BLUE;
             ctx.fillRect(pad, barY, W - pad * 2, barH);
             ctx.fillStyle = '#ffffff';
-            ctx.font = '700 22px Prompt, Sarabun, sans-serif';
+            ctx.font = '700 22px Prompt, sans-serif';
             ctx.textAlign = 'center';
             ctx.fillText('THAI QR PAYMENT', W / 2, barY + 37);
 
             let y = barY + barH + 44;
             ctx.fillStyle = '#1a1a1a';
-            ctx.font = '700 30px Prompt, Sarabun, sans-serif';
-            ctx.fillText(config.accountName, W / 2, y);
+            ctx.font = '700 30px Prompt, sans-serif';
+            const nameLines = wrapText(ctx, config.accountName, W - pad * 2);
+            nameLines.forEach(line => {
+                ctx.fillText(line, W / 2, y);
+                y += 36;
+            });
 
-            y += 40;
+            y += 4;
             ctx.fillStyle = '#666666';
-            ctx.font = '400 24px Prompt, Sarabun, sans-serif';
+            ctx.font = '400 24px Prompt, sans-serif';
             const idText = currentMode === 'phone' ? fmtPhone(config.phone) : maskId(config.idcard);
             ctx.fillText('พร้อมเพย์ ID: ' + idText, W / 2, y);
 
             if (formatted) {
                 y += 52;
                 ctx.fillStyle = PP_BLUE;
-                ctx.font = '700 48px Prompt, Sarabun, sans-serif';
+                ctx.font = '700 48px Prompt, sans-serif';
                 ctx.fillText('฿ ' + formatted, W / 2, y);
             }
 
             return canvas;
         }
 
+        function canvasToBlob(canvas) {
+            return new Promise((resolve, reject) => {
+                canvas.toBlob(b => b ? resolve(b) : reject(new Error('blob failed')), 'image/png', 1);
+            });
+        }
+
+        function showPreview(blob) {
+            const url = URL.createObjectURL(blob);
+            document.getElementById('previewImg').src = url;
+            document.getElementById('previewOverlay').classList.add('open');
+            document.getElementById('previewClose').onclick = () => {
+                document.getElementById('previewOverlay').classList.remove('open');
+                URL.revokeObjectURL(url);
+            };
+        }
+
         async function downloadQR() {
-            const c = await exportImage();
-            if (!c) return;
-            const a = document.createElement('a');
-            a.download = 'promptpay-qr.png';
-            a.href = c.toDataURL('image/png');
-            a.click();
-            showToast('✓ บันทึกรูปแล้ว');
+            try {
+                showToast('กำลังสร้างรูป...');
+                const canvas = await exportImage();
+                const blob = await canvasToBlob(canvas);
+
+                if (/iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+                    showPreview(blob);
+                    showToast('กดค้างที่รูปเพื่อบันทึก');
+                    return;
+                }
+
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'promptpay-qr.png';
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                setTimeout(() => URL.revokeObjectURL(url), 3000);
+                showToast('✓ บันทึกรูปแล้ว');
+            } catch (e) {
+                console.error(e);
+                showToast('บันทึกไม่สำเร็จ ลองอีกครั้ง');
+            }
         }
 
         async function shareQR() {
-            const c = await exportImage();
-            if (!c) return;
-            c.toBlob(async blob => {
+            try {
+                showToast('กำลังสร้างรูป...');
+                const canvas = await exportImage();
+                const blob = await canvasToBlob(canvas);
                 const file = new File([blob], 'promptpay-qr.png', { type: 'image/png' });
-                if (navigator.canShare?.({ files: [file] })) {
-                    try {
-                        await navigator.share({ files: [file], title: 'QR พร้อมเพย์', text: config.accountName });
-                    } catch (e) { /* user cancelled */ }
-                } else {
-                    downloadQR();
-                    showToast('บันทึกรูปแล้ว — เปิด LINE แนบรูปได้เลย');
+
+                if (navigator.share && navigator.canShare?.({ files: [file] })) {
+                    await navigator.share({
+                        files: [file],
+                        title: 'QR พร้อมเพย์',
+                        text: config.accountName
+                    });
+                    showToast('✓ แชร์แล้ว');
+                    return;
                 }
-            }, 'image/png');
+
+                if (/iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+                    showPreview(blob);
+                    showToast('บันทึกรูปแล้วแชร์ LINE ได้');
+                    return;
+                }
+
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'promptpay-qr.png';
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                setTimeout(() => URL.revokeObjectURL(url), 3000);
+                showToast('บันทึกรูปแล้ว — เปิด LINE แนบได้เลย');
+            } catch (e) {
+                if (e.name !== 'AbortError') {
+                    console.error(e);
+                    showToast('แชร์ไม่สำเร็จ ลองกดบันทึกรูปแทน');
+                }
+            }
         }
 
         document.addEventListener('DOMContentLoaded', () => {
