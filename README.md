@@ -12,11 +12,11 @@
 
 ## วิธี Deploy บน GitHub Pages
 
-1. สร้าง repo ใหม่ชื่อ `QR-PUI` ที่ GitHub
+1. สร้าง repo ชื่อ `Promptpay` ที่ GitHub (หรือใช้ [Puicuppom/Promptpay](https://github.com/Puicuppom/Promptpay))
 2. Push โค้ดขึ้น branch `main`
 3. ไปที่ **Settings → Pages → Build and deployment**
 4. เลือก **Source: GitHub Actions**
-5. รอ workflow รันเสร็จ แล้วเปิดลิงก์ที่ได้
+5. รอ workflow รันเสร็จ แล้วเปิด **https://puicuppom.github.io/Promptpay/**
 
 ## รูป QR ธนาคาร
 
