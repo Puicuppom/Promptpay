@@ -78,8 +78,8 @@
         /* แนวตั้ง — มือถือ */
         @media (orientation: portrait) {
             .app { gap: 4px; }
-            .slip-info { padding: 6px 10px 8px; }
-            .slip-qr { padding: 6px 6px 0; }
+            .slip-qr { padding: 14px 18px 10px; }
+            .slip-info { padding: 10px 16px 12px; }
         }
 
         /* จอเล็กมาก */
@@ -183,7 +183,17 @@
         .slip-qr {
             flex: 1;
             min-height: 0;
-            padding: 8px 8px 0;
+            padding: 14px 18px 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .qr-frame {
+            padding: 14px;
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: inset 0 0 0 1px #ebebeb;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -224,7 +234,7 @@
         }
 
         .slip-info {
-            padding: 8px 12px 10px;
+            padding: 10px 16px 12px;
             text-align: center;
             flex-shrink: 0;
         }
@@ -652,7 +662,9 @@
         <!-- QR Slip -->
         <div class="slip" id="slip">
             <div class="slip-qr">
-                <div id="promptpayQr"></div>
+                <div class="qr-frame">
+                    <div id="promptpayQr"></div>
+                </div>
             </div>
             <div class="thai-bar">THAI QR PAYMENT</div>
             <div class="slip-info">
@@ -859,6 +871,10 @@
             const vh = vv ? vv.height : window.innerHeight;
             const vw = vv ? vv.width : window.innerWidth;
 
+            const QR_FRAME = 28;   /* padding ในกรอบ QR 14px × 2 */
+            const SLIP_PAD = 36;   /* padding slip ซ้ายขวา 18px × 2 */
+            const APP_PAD = 20;
+
             const gap = 5 * 3;
             const chrome =
                 document.querySelector('.topbar').offsetHeight +
@@ -866,16 +882,15 @@
                 document.querySelector('.actions').offsetHeight +
                 document.querySelector('.slip-info').offsetHeight +
                 document.querySelector('.thai-bar').offsetHeight +
-                gap;
+                gap + QR_FRAME;
 
             const banner = document.getElementById('installBanner').classList.contains('show')
                 ? document.getElementById('installBanner').offsetHeight + 8 : 0;
 
-            const pad = 20;
-            const byHeight = vh - chrome - banner - pad;
-            const byWidth = vw - 28;
+            const byHeight = vh - chrome - banner - APP_PAD;
+            const byWidth = vw - SLIP_PAD - QR_FRAME - APP_PAD;
 
-            return Math.floor(Math.max(110, Math.min(byHeight, byWidth)));
+            return Math.floor(Math.max(100, Math.min(byHeight, byWidth)));
         }
 
         function render() {
@@ -995,39 +1010,45 @@
         }
 
         async function exportImage() {
-            const qrSize = 560;
-            const { el, wrap } = await buildQrOffscreen(qrSize);
-
             const W = 900;
-            const pad = 48;
+            const topPad = 56;
+            const bottomPad = 48;
+            const qrInnerPad = 36;
+            const qrGap = 16;
             const barH = 56;
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
+            const qrSize = 480;
+
+            const { el, wrap } = await buildQrOffscreen(qrSize);
 
             const formatted = fmtAmount(document.getElementById('amountInput').value);
             const infoH = formatted ? 160 : 110;
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+
             canvas.width = W;
-            canvas.height = pad + qrSize + barH + infoH + pad;
+            canvas.height = topPad + qrInnerPad * 2 + qrSize + qrGap + barH + infoH + bottomPad;
 
             ctx.fillStyle = '#ffffff';
             ctx.fillRect(0, 0, W, canvas.height);
 
-            drawQrOn(ctx, el, (W - qrSize) / 2, pad, qrSize);
+            const qrX = (W - qrSize) / 2;
+            const qrY = topPad + qrInnerPad;
+            drawQrOn(ctx, el, qrX, qrY, qrSize);
             document.body.removeChild(wrap);
 
-            const barY = pad + qrSize;
+            const barY = qrY + qrSize + qrInnerPad + qrGap;
             ctx.fillStyle = PP_BLUE;
-            ctx.fillRect(pad, barY, W - pad * 2, barH);
+            ctx.fillRect(0, barY, W, barH);
             ctx.fillStyle = '#ffffff';
             ctx.font = '700 22px Prompt, sans-serif';
             ctx.textAlign = 'center';
             ctx.fillText('THAI QR PAYMENT', W / 2, barY + 37);
 
+            const sidePad = 48;
             let y = barY + barH + 44;
             ctx.fillStyle = '#1a1a1a';
             ctx.font = '700 30px Prompt, sans-serif';
-            const nameLines = wrapText(ctx, config.accountName, W - pad * 2);
-            nameLines.forEach(line => {
+            wrapText(ctx, config.accountName, W - sidePad * 2).forEach(line => {
                 ctx.fillText(line, W / 2, y);
                 y += 36;
             });
