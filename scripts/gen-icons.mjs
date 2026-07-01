@@ -78,11 +78,11 @@ function drawIcon(size) {
     ctx.fillRect(lineX, lineY - s * 0.008, lineW, s * 0.016);
     ctx.fillRect(lineX, lineY + s * 0.012, lineW * 0.65, s * 0.012);
 
-    // ข้อความ "พร้อมเพย์" ใต้การ์ด
+    // ข้อความ PromptPay ใต้การ์ด
     ctx.fillStyle = WHITE;
-    ctx.font = `bold ${s * 0.072}px sans-serif`;
+    ctx.font = `bold ${s * 0.068}px sans-serif`;
     ctx.textAlign = 'center';
-    ctx.fillText('พร้อมเพย์', s / 2, cy + ch + s * 0.065);
+    ctx.fillText('PromptPay', s / 2, cy + ch + s * 0.065);
 
     return canvas.toBuffer('image/png');
 }

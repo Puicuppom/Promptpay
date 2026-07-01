@@ -31,6 +31,6 @@
   <text x="108" y="402" fill="#fff" font-family="Prompt,sans-serif" font-size="28" font-weight="700">฿</text>
   <rect x="148" y="388" width="220" height="8" rx="4" fill="#fff" opacity="0.9"/>
   <rect x="148" y="404" width="150" height="6" rx="3" fill="#fff" opacity="0.7"/>
-  <!-- พร้อมเพย์ -->
-  <text x="256" y="462" fill="#fff" font-family="Prompt,sans-serif" font-size="36" font-weight="700" text-anchor="middle">พร้อมเพย์</text>
+  <!-- PromptPay -->
+  <text x="256" y="462" fill="#fff" font-family="Prompt,sans-serif" font-size="34" font-weight="700" text-anchor="middle">PromptPay</text>
 </svg>
