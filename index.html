@@ -4,12 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="theme-color" content="#00468C">
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="พร้อมเพย์">
-    <link rel="manifest" href="manifest.json">
-    <link rel="icon" href="icon.svg" type="image/svg+xml">
-    <link rel="apple-touch-icon" href="icon.svg">
+    <link rel="manifest" href="/manifest.json">
+    <link rel="icon" href="/icon-192.png" type="image/png" sizes="192x192">
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180">
     <title>พร้อมเพย์</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -83,6 +84,12 @@
             font-size: 15px;
             font-weight: 600;
             color: var(--pp-blue);
+        }
+
+        .topbar-actions {
+            display: flex;
+            gap: 6px;
+            flex-shrink: 0;
         }
 
         .icon-btn {
@@ -422,6 +429,86 @@
             opacity: 1;
             transform: translateX(-50%) translateY(0);
         }
+
+        .install-banner {
+            display: none;
+            position: fixed;
+            bottom: max(env(safe-area-inset-bottom), 10px);
+            left: 12px;
+            right: 12px;
+            background: var(--white);
+            border-radius: 14px;
+            padding: 12px 14px;
+            box-shadow: 0 8px 30px rgba(0,70,140,0.2);
+            z-index: 150;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .install-banner.show { display: flex; }
+
+        .install-banner img {
+            width: 44px;
+            height: 44px;
+            border-radius: 10px;
+            flex-shrink: 0;
+        }
+
+        .install-banner-text {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .install-banner-text strong {
+            display: block;
+            font-size: 14px;
+            color: var(--text);
+        }
+
+        .install-banner-text span {
+            font-size: 11px;
+            color: var(--muted);
+        }
+
+        .install-banner-btns {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            flex-shrink: 0;
+        }
+
+        .install-go {
+            border: none;
+            border-radius: 8px;
+            background: var(--pp-blue);
+            color: #fff;
+            font-family: inherit;
+            font-size: 12px;
+            font-weight: 600;
+            padding: 7px 12px;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .install-dismiss {
+            border: none;
+            background: none;
+            color: var(--muted);
+            font-family: inherit;
+            font-size: 11px;
+            cursor: pointer;
+        }
+
+        .ios-steps {
+            font-size: 14px;
+            color: var(--text);
+            line-height: 1.7;
+            padding: 8px 0;
+        }
+
+        .ios-steps ol {
+            margin: 8px 0 0 18px;
+        }
     </style>
 </head>
 <body>
@@ -430,9 +517,14 @@
     <div class="app">
         <div class="topbar">
             <span class="topbar-title">QR รับเงิน</span>
-            <button class="icon-btn" id="settingsBtn" aria-label="ตั้งค่า">
-                <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.31.06-.63.06-.94 0-.31-.02-.63-.06-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.04.31-.06.63-.06.94s.02.63.06.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
-            </button>
+            <div class="topbar-actions">
+                <button class="icon-btn" id="installBtn" aria-label="ติดตั้งแอป" style="display:none;">
+                    <svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+                </button>
+                <button class="icon-btn" id="settingsBtn" aria-label="ตั้งค่า">
+                    <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.31.06-.63.06-.94 0-.31-.02-.63-.06-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.04.31-.06.63-.06.94s.02.63.06.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+                </button>
+            </div>
         </div>
 
         <!-- QR Slip -->
@@ -506,6 +598,46 @@
     </div>
 
     <div class="toast" id="toast"></div>
+
+    <div class="install-banner" id="installBanner">
+        <img src="/icon-192.png" alt="">
+        <div class="install-banner-text">
+            <strong>ติดตั้งแอป พร้อมเพย์</strong>
+            <span id="installHint">เปิดได้จากหน้าจอโฮม</span>
+        </div>
+        <div class="install-banner-btns">
+            <button class="install-go" id="installGo">ติดตั้ง</button>
+            <button class="install-dismiss" id="installDismiss">ไว้ทีหลัง</button>
+        </div>
+    </div>
+
+    <!-- iOS install guide -->
+    <div class="overlay" id="iosInstallOverlay">
+        <div class="sheet">
+            <div class="sheet-handle"></div>
+            <div class="sheet-header">
+                <h3>เพิ่มที่หน้าจอโฮม</h3>
+                <button class="icon-btn" id="closeIosInstall" aria-label="ปิด">
+                    <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+                </button>
+            </div>
+            <div class="sheet-body">
+                <div class="ios-steps">
+                    <p><strong>iPhone / iPad (Safari)</strong></p>
+                    <ol>
+                        <li>กดปุ่ม <strong>แชร์</strong> ด้านล่าง</li>
+                        <li>เลือก <strong>เพิ่มที่หน้าจอโฮม</strong></li>
+                        <li>กด <strong>เพิ่ม</strong></li>
+                    </ol>
+                    <p style="margin-top:14px"><strong>Android (Chrome)</strong></p>
+                    <ol>
+                        <li>กดเมนู ⋮ มุมขวาบน</li>
+                        <li>เลือก <strong>ติดตั้งแอป</strong> หรือ <strong>เพิ่มไปที่หน้าจอหลัก</strong></li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <script>
         const PP_BLUE = '#00468C';
@@ -795,7 +927,75 @@
                 clearTimeout(window._resizeT);
                 window._resizeT = setTimeout(render, 150);
             });
+
+            initPWA();
         });
+
+        function isStandalone() {
+            return window.matchMedia('(display-mode: standalone)').matches
+                || window.navigator.standalone === true;
+        }
+
+        function isIOS() {
+            return /iPad|iPhone|iPod/.test(navigator.userAgent)
+                || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+        }
+
+        let deferredInstall = null;
+
+        function initPWA() {
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('/sw.js').catch(() => {});
+            }
+
+            if (isStandalone()) return;
+
+            const banner = document.getElementById('installBanner');
+            const dismissed = localStorage.getItem('pwa-dismissed');
+
+            window.addEventListener('beforeinstallprompt', (e) => {
+                e.preventDefault();
+                deferredInstall = e;
+                document.getElementById('installBtn').style.display = 'flex';
+                if (!dismissed) banner.classList.add('show');
+            });
+
+            if (isIOS() && !dismissed) {
+                document.getElementById('installBtn').style.display = 'flex';
+                document.getElementById('installHint').textContent = 'Safari → แชร์ → เพิ่มที่หน้าจอโฮม';
+                banner.classList.add('show');
+            }
+
+            document.getElementById('installGo').addEventListener('click', async () => {
+                if (deferredInstall) {
+                    deferredInstall.prompt();
+                    await deferredInstall.userChoice;
+                    deferredInstall = null;
+                    banner.classList.remove('show');
+                } else {
+                    document.getElementById('iosInstallOverlay').classList.add('open');
+                }
+            });
+
+            document.getElementById('installBtn').addEventListener('click', () => {
+                if (deferredInstall) {
+                    document.getElementById('installGo').click();
+                } else {
+                    document.getElementById('iosInstallOverlay').classList.add('open');
+                }
+            });
+
+            document.getElementById('installDismiss').addEventListener('click', () => {
+                banner.classList.remove('show');
+                localStorage.setItem('pwa-dismissed', '1');
+            });
+
+            document.getElementById('closeIosInstall').addEventListener('click', () =>
+                document.getElementById('iosInstallOverlay').classList.remove('open'));
+            document.getElementById('iosInstallOverlay').addEventListener('click', e => {
+                if (e.target === e.currentTarget) e.currentTarget.classList.remove('open');
+            });
+        }
     </script>
 </body>
 </html>
