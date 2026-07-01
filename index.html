@@ -28,12 +28,16 @@
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
 
+        html, body {
+            height: 100%;
+            overflow: hidden;
+            overscroll-behavior: none;
+        }
+
         body {
             font-family: 'Prompt', sans-serif;
             background: var(--bg);
             color: var(--text);
-            min-height: 100vh;
-            min-height: 100dvh;
         }
 
         /* ── Background ── */
@@ -50,9 +54,20 @@
         .app {
             position: relative;
             z-index: 1;
-            max-width: 420px;
+            width: 100%;
+            max-width: 100%;
+            height: 100dvh;
+            height: 100svh;
             margin: 0 auto;
-            padding: max(env(safe-area-inset-top), 12px) 20px max(env(safe-area-inset-bottom), 28px);
+            padding:
+                max(env(safe-area-inset-top), 6px)
+                max(env(safe-area-inset-right), 12px)
+                max(env(safe-area-inset-bottom), 6px)
+                max(env(safe-area-inset-left), 12px);
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            overflow: hidden;
         }
 
         /* ── Top bar ── */
@@ -60,104 +75,104 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 8px 0 20px;
+            padding: 2px 0;
+            flex-shrink: 0;
         }
 
         .topbar-title {
-            font-size: 17px;
+            font-size: 15px;
             font-weight: 600;
             color: var(--pp-blue);
         }
 
         .icon-btn {
-            width: 40px; height: 40px;
+            width: 36px; height: 36px;
             border: none;
-            border-radius: 12px;
+            border-radius: 10px;
             background: var(--white);
             color: var(--pp-blue);
             cursor: pointer;
             display: flex; align-items: center; justify-content: center;
             box-shadow: 0 2px 8px rgba(0,70,140,0.1);
-            transition: transform 0.15s, box-shadow 0.2s;
+            flex-shrink: 0;
         }
 
         .icon-btn:active { transform: scale(0.95); }
-        .icon-btn svg { width: 20px; height: 20px; fill: currentColor; }
+        .icon-btn svg { width: 18px; height: 18px; fill: currentColor; }
 
-        /* ── QR Slip (exact PromptPay style) ── */
+        /* ── QR Slip ── */
         .slip {
             background: var(--white);
-            border-radius: var(--radius);
-            box-shadow:
-                0 4px 6px rgba(0,70,140,0.04),
-                0 20px 50px rgba(0,70,140,0.12);
+            border-radius: 14px;
+            box-shadow: 0 4px 20px rgba(0,70,140,0.1);
             overflow: hidden;
-            margin-bottom: 20px;
-            animation: slipIn 0.5s cubic-bezier(0.22, 1, 0.36, 1);
-        }
-
-        @keyframes slipIn {
-            from { opacity: 0; transform: translateY(16px) scale(0.98); }
-            to { opacity: 1; transform: translateY(0) scale(1); }
+            flex: 1;
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
         }
 
         .slip-qr {
-            padding: 28px 28px 0;
-            display: flex;
-            justify-content: center;
-        }
-
-        #promptpayQr {
-            width: 280px;
-            height: 280px;
+            flex: 1;
+            min-height: 0;
+            padding: 8px 8px 0;
             display: flex;
             align-items: center;
             justify-content: center;
         }
 
+        #promptpayQr {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 0;
+        }
+
         #promptpayQr img {
             display: block !important;
-            width: 280px !important;
-            height: 280px !important;
+            width: var(--qr-size, 200px) !important;
+            height: var(--qr-size, 200px) !important;
         }
 
         .thai-bar {
             background: var(--pp-blue);
             color: #fff;
             text-align: center;
-            font-size: 15px;
+            font-size: 11px;
             font-weight: 700;
-            letter-spacing: 1.2px;
-            padding: 11px 16px;
-            margin-top: 20px;
+            letter-spacing: 1px;
+            padding: 7px 12px;
+            flex-shrink: 0;
         }
 
         .slip-info {
-            padding: 22px 24px 28px;
+            padding: 8px 12px 10px;
             text-align: center;
+            flex-shrink: 0;
         }
 
         .slip-name {
-            font-size: 20px;
+            font-size: clamp(13px, 3.6vw, 16px);
             font-weight: 700;
             color: var(--text);
-            line-height: 1.3;
-            margin-bottom: 8px;
+            line-height: 1.25;
+            margin-bottom: 3px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .slip-id {
-            font-size: 15px;
+            font-size: clamp(11px, 2.8vw, 12px);
             color: var(--muted);
-            font-weight: 400;
         }
 
         .slip-amount {
             display: none;
-            font-size: 32px;
+            font-size: clamp(18px, 5vw, 22px);
             font-weight: 700;
             color: var(--pp-blue);
-            margin-top: 16px;
-            letter-spacing: -0.5px;
+            margin-top: 4px;
         }
 
         .slip-amount.show { display: block; }
@@ -165,46 +180,35 @@
         /* ── Controls ── */
         .controls {
             background: var(--white);
-            border-radius: var(--radius);
-            padding: 18px;
-            box-shadow: 0 2px 12px rgba(0,70,140,0.06);
-            margin-bottom: 14px;
-        }
-
-        .ctrl-label {
-            font-size: 12px;
-            font-weight: 600;
-            color: var(--muted);
-            text-transform: uppercase;
-            letter-spacing: 0.6px;
-            margin-bottom: 10px;
+            border-radius: 14px;
+            padding: 8px 10px;
+            box-shadow: 0 2px 8px rgba(0,70,140,0.06);
+            flex-shrink: 0;
         }
 
         .mode-pills {
             display: flex;
-            gap: 8px;
-            margin-bottom: 18px;
+            gap: 6px;
+            margin-bottom: 8px;
         }
 
         .pill {
             flex: 1;
             border: 1.5px solid #e8ecf0;
             background: #fafbfc;
-            border-radius: 12px;
-            padding: 11px 8px;
+            border-radius: 10px;
+            padding: 7px 4px;
             font-family: inherit;
-            font-size: 13px;
+            font-size: 12px;
             font-weight: 600;
             color: var(--muted);
             cursor: pointer;
-            transition: all 0.2s;
         }
 
         .pill.active {
             background: var(--pp-blue);
             border-color: var(--pp-blue);
             color: #fff;
-            box-shadow: 0 4px 12px rgba(0,70,140,0.25);
         }
 
         .amount-field {
@@ -212,21 +216,15 @@
             align-items: center;
             background: #fafbfc;
             border: 1.5px solid #e8ecf0;
-            border-radius: 12px;
-            padding: 4px 14px;
-            transition: border-color 0.2s, box-shadow 0.2s;
-        }
-
-        .amount-field:focus-within {
-            border-color: var(--pp-blue);
-            box-shadow: 0 0 0 3px rgba(0,70,140,0.1);
+            border-radius: 10px;
+            padding: 2px 10px;
         }
 
         .amount-field span {
-            font-size: 22px;
+            font-size: 16px;
             font-weight: 700;
             color: var(--pp-blue);
-            margin-right: 6px;
+            margin-right: 4px;
         }
 
         .amount-field input {
@@ -234,52 +232,55 @@
             border: none;
             background: transparent;
             font-family: inherit;
-            font-size: 22px;
+            font-size: 16px;
             font-weight: 600;
             color: var(--text);
             outline: none;
             min-width: 0;
-            padding: 10px 0;
+            padding: 6px 0;
         }
 
-        .amount-field input::placeholder { color: #ccc; font-weight: 500; }
+        .amount-field input::placeholder { color: #ccc; }
 
         /* ── Actions ── */
         .actions {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 10px;
+            gap: 8px;
+            flex-shrink: 0;
         }
 
         .btn {
             border: none;
-            border-radius: 14px;
-            padding: 14px;
+            border-radius: 12px;
+            padding: 11px 8px;
             font-family: inherit;
-            font-size: 15px;
+            font-size: 14px;
             font-weight: 600;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 7px;
-            transition: transform 0.15s;
+            gap: 6px;
         }
 
         .btn:active { transform: scale(0.97); }
-        .btn svg { width: 18px; height: 18px; fill: currentColor; }
+        .btn svg { width: 17px; height: 17px; fill: currentColor; }
 
         .btn-ghost {
             background: var(--white);
             color: var(--pp-blue);
             border: 1.5px solid #dde3ea;
-            box-shadow: 0 2px 6px rgba(0,70,140,0.06);
         }
 
         .btn-fill {
             background: var(--pp-blue);
             color: #fff;
-            box-shadow: 0 4px 14px rgba(0,70,140,0.3);
+        }
+
+        .btn-line {
+            background: #06C755;
+            color: #fff;
         }
 
         /* ── Settings modal ── */
@@ -449,26 +450,24 @@
 
         <!-- Controls -->
         <div class="controls">
-            <div class="ctrl-label">ประเภทพร้อมเพย์</div>
             <div class="mode-pills">
                 <button class="pill active" data-mode="phone">📱 เบอร์โทร</button>
                 <button class="pill" data-mode="idcard">🪪 เลขบัตร</button>
             </div>
-            <div class="ctrl-label">จำนวนเงิน (ไม่บังคับ)</div>
             <div class="amount-field">
                 <span>฿</span>
-                <input type="number" id="amountInput" placeholder="0.00" min="0" step="0.01" inputmode="decimal">
+                <input type="number" id="amountInput" placeholder="จำนวนเงิน (ไม่บังคับ)" min="0" step="0.01" inputmode="decimal">
             </div>
         </div>
 
         <div class="actions">
             <button class="btn btn-ghost" id="downloadBtn">
                 <svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
-                บันทึก
+                บันทึกรูป
             </button>
-            <button class="btn btn-fill" id="shareBtn" style="display:none;">
+            <button class="btn btn-line" id="shareBtn">
                 <svg viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92-1.31-2.92-2.92-2.92z"/></svg>
-                แชร์
+                แชร์ LINE
             </button>
         </div>
     </div>
@@ -594,11 +593,26 @@
             return (!n || n <= 0) ? null : n.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         }
 
+        function calcQrSize() {
+            const fixed = document.querySelector('.topbar').offsetHeight
+                + document.querySelector('.controls').offsetHeight
+                + document.querySelector('.actions').offsetHeight
+                + document.querySelector('.slip-info').offsetHeight
+                + document.querySelector('.thai-bar').offsetHeight
+                + 40;
+            const maxByHeight = window.innerHeight - fixed;
+            const maxByWidth = window.innerWidth - 48;
+            return Math.max(130, Math.min(maxByHeight, maxByWidth, 240));
+        }
+
         function render() {
             const container = document.getElementById('promptpayQr');
             const rawId = currentMode === 'phone' ? config.phone : config.idcard;
             const amountVal = document.getElementById('amountInput').value;
             const formatted = fmtAmount(amountVal);
+            const qrSize = calcQrSize();
+
+            document.documentElement.style.setProperty('--qr-size', qrSize + 'px');
 
             document.getElementById('displayName').textContent = config.accountName || '-';
             document.getElementById('displayDetail').textContent =
@@ -616,8 +630,8 @@
             if (typeof QRCode !== 'undefined') {
                 new QRCode(container, {
                     text: generatePayload(currentMode, rawId, amountVal),
-                    width: 280,
-                    height: 280,
+                    width: qrSize,
+                    height: qrSize,
                     colorDark: '#000000',
                     colorLight: '#ffffff',
                     correctLevel: QRCode.CorrectLevel.M
@@ -627,52 +641,81 @@
 
         function getQrImg() { return document.querySelector('#promptpayQr img'); }
 
-        async function exportImage() {
-            const img = getQrImg();
-            if (!img) return null;
+        function createHighResQr(size) {
+            return new Promise(resolve => {
+                const wrap = document.createElement('div');
+                wrap.style.cssText = 'position:fixed;left:-9999px;top:0';
+                document.body.appendChild(wrap);
+                const rawId = currentMode === 'phone' ? config.phone : config.idcard;
+                const amountVal = document.getElementById('amountInput').value;
+                new QRCode(wrap, {
+                    text: generatePayload(currentMode, rawId, amountVal),
+                    width: size,
+                    height: size,
+                    colorDark: '#000000',
+                    colorLight: '#ffffff',
+                    correctLevel: QRCode.CorrectLevel.M
+                });
+                const check = () => {
+                    const img = wrap.querySelector('img');
+                    if (img?.complete && img.naturalWidth) {
+                        resolve({ img, wrap });
+                    } else if (img) {
+                        img.onload = () => resolve({ img, wrap });
+                    } else {
+                        requestAnimationFrame(check);
+                    }
+                };
+                check();
+            });
+        }
 
-            const W = 420, pad = 36;
-            const qrSize = 300;
-            const barH = 44;
+        /* รูป export 900px อ่านง่ายใน LINE */
+        async function exportImage() {
+            const qrSize = 560;
+            const { img, wrap } = await createHighResQr(qrSize);
+
+            const W = 900;
+            const pad = 48;
+            const barH = 56;
             const canvas = document.createElement('canvas');
             const ctx = canvas.getContext('2d');
 
             const amountVal = document.getElementById('amountInput').value;
             const formatted = fmtAmount(amountVal);
-            const infoH = formatted ? 130 : 90;
+            const infoH = formatted ? 160 : 110;
             canvas.width = W;
             canvas.height = pad + qrSize + barH + infoH + pad;
 
             ctx.fillStyle = '#ffffff';
             ctx.fillRect(0, 0, W, canvas.height);
 
-            const qrX = (W - qrSize) / 2;
-            ctx.drawImage(img, qrX, pad, qrSize, qrSize);
+            ctx.drawImage(img, (W - qrSize) / 2, pad, qrSize, qrSize);
+            document.body.removeChild(wrap);
 
             const barY = pad + qrSize;
             ctx.fillStyle = PP_BLUE;
             ctx.fillRect(pad, barY, W - pad * 2, barH);
             ctx.fillStyle = '#ffffff';
-            ctx.font = '700 16px Prompt, sans-serif';
+            ctx.font = '700 22px Prompt, Sarabun, sans-serif';
             ctx.textAlign = 'center';
-            ctx.letterSpacing = '1px';
-            ctx.fillText('THAI QR PAYMENT', W / 2, barY + 28);
+            ctx.fillText('THAI QR PAYMENT', W / 2, barY + 37);
 
-            let y = barY + barH + 36;
+            let y = barY + barH + 44;
             ctx.fillStyle = '#1a1a1a';
-            ctx.font = '700 20px Prompt, sans-serif';
+            ctx.font = '700 30px Prompt, Sarabun, sans-serif';
             ctx.fillText(config.accountName, W / 2, y);
 
-            y += 30;
-            ctx.fillStyle = '#888888';
-            ctx.font = '400 15px Prompt, sans-serif';
+            y += 40;
+            ctx.fillStyle = '#666666';
+            ctx.font = '400 24px Prompt, Sarabun, sans-serif';
             const idText = currentMode === 'phone' ? fmtPhone(config.phone) : maskId(config.idcard);
             ctx.fillText('พร้อมเพย์ ID: ' + idText, W / 2, y);
 
             if (formatted) {
-                y += 40;
+                y += 52;
                 ctx.fillStyle = PP_BLUE;
-                ctx.font = '700 32px Prompt, sans-serif';
+                ctx.font = '700 48px Prompt, Sarabun, sans-serif';
                 ctx.fillText('฿ ' + formatted, W / 2, y);
             }
 
@@ -686,7 +729,7 @@
             a.download = 'promptpay-qr.png';
             a.href = c.toDataURL('image/png');
             a.click();
-            showToast('✓ บันทึกแล้ว');
+            showToast('✓ บันทึกรูปแล้ว');
         }
 
         async function shareQR() {
@@ -695,8 +738,13 @@
             c.toBlob(async blob => {
                 const file = new File([blob], 'promptpay-qr.png', { type: 'image/png' });
                 if (navigator.canShare?.({ files: [file] })) {
-                    await navigator.share({ files: [file], title: 'QR พร้อมเพย์', text: config.accountName });
-                } else showToast('ไม่รองรับการแชร์');
+                    try {
+                        await navigator.share({ files: [file], title: 'QR พร้อมเพย์', text: config.accountName });
+                    } catch (e) { /* user cancelled */ }
+                } else {
+                    downloadQR();
+                    showToast('บันทึกรูปแล้ว — เปิด LINE แนบรูปได้เลย');
+                }
             }, 'image/png');
         }
 
@@ -740,13 +788,13 @@
             });
 
             document.getElementById('downloadBtn').addEventListener('click', downloadQR);
-
-            if (navigator.share) {
-                document.getElementById('shareBtn').style.display = 'flex';
-                document.getElementById('shareBtn').addEventListener('click', shareQR);
-            }
+            document.getElementById('shareBtn').addEventListener('click', shareQR);
 
             render();
+            window.addEventListener('resize', () => {
+                clearTimeout(window._resizeT);
+                window._resizeT = setTimeout(render, 150);
+            });
         });
     </script>
 </body>
