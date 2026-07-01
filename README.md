@@ -11,7 +11,8 @@
 
 ## ลิงก์แอป
 
-**https://puicuppom.github.io/Promptpay/**
+- **Vercel:** https://promptpay-lyart.vercel.app
+- **GitHub Pages:** https://puicuppom.github.io/Promptpay/
 
 ## ติดตั้งเป็นแอปบนมือถือ
 
