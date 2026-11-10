@@ -294,6 +294,7 @@
         .install-dismiss { background: #F1F5F9; color: var(--muted); }
         .ios-steps { font-size: 14px; line-height: 1.7; }
         .ios-steps ol { padding-left: 20px; }
+        .inapp-warn { background: #FFF7E6; border: 1px solid #FDE2B3; color: #7A4A06; border-radius: 12px; padding: 12px; margin-bottom: 14px; font-size: 14px; line-height: 1.6; }
     </style>
 </head>
 <body>
@@ -486,17 +487,25 @@
             </div>
             <div class="sheet-body">
                 <div class="ios-steps">
+                    <div class="inapp-warn" id="inappWarn" hidden>
+                        <b>ตอนนี้เปิดอยู่ในเบราว์เซอร์ของ <span id="inappName">แอป</span></b><br>
+                        ติดตั้งจากตรงนี้ไม่ได้ — กดเมนู ⋮ / ⋯ แล้วเลือก <b>เปิดในเบราว์เซอร์</b> (Chrome หรือ Safari) ก่อน
+                        <button class="btn-save" type="button" id="openExtBtn" style="height:44px;margin-top:10px">เปิดใน Chrome / Safari</button>
+                    </div>
                     <p><strong>iPhone / iPad (Safari)</strong></p>
                     <ol>
                         <li>กดปุ่ม <strong>แชร์</strong> ด้านล่าง</li>
                         <li>เลือก <strong>เพิ่มที่หน้าจอโฮม</strong></li>
                         <li>กด <strong>เพิ่ม</strong></li>
                     </ol>
+                    <p style="margin-top:8px;color:var(--muted);font-size:13px">ใน Chrome บน iPhone: กดปุ่มแชร์ที่ช่อง URL → เพิ่มที่หน้าจอโฮม</p>
                     <p style="margin-top:14px"><strong>Android (Chrome)</strong></p>
                     <ol>
                         <li>กดเมนู ⋮ มุมขวาบน</li>
-                        <li>เลือก <strong>ติดตั้งแอป</strong> หรือ <strong>เพิ่มไปที่หน้าจอหลัก</strong></li>
+                        <li>เลือก <strong>ติดตั้งแอป</strong> หรือ <strong>เพิ่มลงในหน้าจอหลัก</strong></li>
+                        <li>กด <strong>ติดตั้ง</strong></li>
                     </ol>
+                    <p style="margin-top:8px;color:var(--muted);font-size:13px">ถ้าเคยติดตั้งเวอร์ชันเก่าไว้ ให้ลบไอคอนเก่าออกก่อน แล้วติดตั้งใหม่</p>
                 </div>
             </div>
         </div>
@@ -2000,21 +2009,45 @@
     function isIOS() { return /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1); }
     let deferredInstall = null;
 
+    // เบราว์เซอร์ในแอป (LINE, Facebook, IG) ติดตั้ง PWA ไม่ได้
+    function inAppName() {
+        const ua = navigator.userAgent;
+        if (/\bLine\//i.test(ua)) return 'LINE';
+        if (/FBAN|FBAV|FB_IAB/i.test(ua)) return 'Facebook';
+        if (/Instagram/i.test(ua)) return 'Instagram';
+        if (/Messenger/i.test(ua)) return 'Messenger';
+        return null;
+    }
+    function openExternal() {
+        const u = new URL(location.href);
+        if (inAppName() === 'LINE') { u.searchParams.set('openExternalBrowser', '1'); location.href = u.toString(); return; }
+        if (/Android/i.test(navigator.userAgent)) { location.href = 'intent://' + u.host + u.pathname + '#Intent;scheme=https;package=com.android.chrome;end'; return; }
+        showToast('กดเมนู ⋯ แล้วเลือก "เปิดใน Safari"');
+    }
     function initPWA() {
         if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(() => {});
+        // เปิดลิงก์จาก LINE → เด้งไปเบราว์เซอร์จริงอัตโนมัติ (LINE รองรับพารามิเตอร์นี้)
+        if (inAppName() === 'LINE' && !new URL(location.href).searchParams.has('openExternalBrowser')) { openExternal(); return; }
         if (isStandalone()) return;
         const banner = document.getElementById('installBanner');
         let dismissed = null; try { dismissed = localStorage.getItem('pwa-dismissed'); } catch (e) { /* ignore */ }
         const installBtn = document.getElementById('installBtn');
+        if (isMobile()) installBtn.style.display = 'flex'; // แสดงปุ่มติดตั้งเสมอบนมือถือ
         window.addEventListener('beforeinstallprompt', e => {
             e.preventDefault(); deferredInstall = e;
             installBtn.style.display = 'flex';
             if (!dismissed) banner.classList.add('show');
         });
-        if (isIOS() && !dismissed) installBtn.style.display = 'flex';
+        window.addEventListener('appinstalled', () => { banner.classList.remove('show'); installBtn.style.display = 'none'; showToast('✓ ติดตั้งแอปแล้ว'); });
+        const app = inAppName();
+        if (app) { document.getElementById('inappWarn').hidden = false; document.getElementById('inappName').textContent = app; }
+        document.getElementById('openExtBtn').addEventListener('click', openExternal);
         const go = async () => {
-            if (deferredInstall) { deferredInstall.prompt(); await deferredInstall.userChoice; deferredInstall = null; banner.classList.remove('show'); }
-            else document.getElementById('iosInstallOverlay').classList.add('open');
+            if (deferredInstall) {
+                deferredInstall.prompt();
+                const r = await deferredInstall.userChoice; deferredInstall = null; banner.classList.remove('show');
+                if (r && r.outcome === 'dismissed') showToast('ยกเลิกการติดตั้ง');
+            } else document.getElementById('iosInstallOverlay').classList.add('open');
         };
         document.getElementById('installGo').addEventListener('click', go);
         installBtn.addEventListener('click', go);
