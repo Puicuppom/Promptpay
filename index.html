@@ -358,6 +358,11 @@
                 <p class="field-hint" style="margin-top:8px">แตะดาวเพื่อตั้งบัญชีที่แสดงก่อนเมื่อเปิดแอป · ใช้ลูกศรสลับลำดับ</p>
                 <div class="backup-box">
                     <div class="box-title"><svg class="ic" viewBox="0 0 24 24"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>กรอบสลิปของฉัน</div>
+                    <div class="field" style="margin-top:8px">
+                        <label for="cfgHeader">ข้อความหัวสลิป (ทุกบัญชี)</label>
+                        <input type="text" id="cfgHeader" maxlength="40" placeholder="เช่น QR รับเงิน · ร้านพุ้ย">
+                        <p class="field-hint">แสดงเหนือการ์ด QR ทุกกรอบ · เว้นว่างถ้ากรอบที่ออกแบบมีหัวข้ออยู่แล้ว</p>
+                    </div>
                     <p id="frameInfo"></p>
                     <div class="frame-grid" id="frameGrid"></div>
                     <div class="backup-btns">
@@ -439,6 +444,12 @@
                     <label for="fAccNo">เลขบัญชี (แสดงบนกรอบ)</label>
                     <input type="text" id="fAccNo" inputmode="numeric" placeholder="123-4-56789-0">
                     <p class="field-hint" id="accNoHint">ไม่บังคับ — ไว้ให้ผู้โอนเห็นว่าเข้าบัญชีไหน</p>
+                </div>
+
+                <div class="field">
+                    <label for="fHeader">ข้อความหัวสลิปของบัญชีนี้</label>
+                    <input type="text" id="fHeader" maxlength="40" placeholder="เว้นว่าง = ใช้ข้อความเริ่มต้น">
+                    <p class="field-hint">พิมพ์ - (ขีด) ถ้าไม่ต้องการหัวข้อเฉพาะบัญชีนี้</p>
                 </div>
 
                 <button class="btn-save" id="saveAccBtn">บันทึก</button>
@@ -547,6 +558,9 @@
     const inkOf = b => b.ink || b.color;
     // กรอบของบัญชี: 'base' = เลือกพื้นฐานเอง, 'custom:<id>' = เลือกกรอบเอง, อื่นๆ/ว่าง = ใช้กรอบเริ่มต้น
     const validCustom = t => t && t.startsWith('custom:') && (state.bgs || []).some(b => 'custom:' + b.id === t) ? t : null;
+    // ข้อความหัวสลิป: ของบัญชี (ถ้าตั้งไว้) > ค่าเริ่มต้นในตั้งค่า > 'QR รับเงิน'
+    const headerOf = acc => (acc.header != null && acc.header !== '') ? (acc.header === '-' ? '' : acc.header)
+        : (state.headerText != null ? state.headerText : 'QR รับเงิน');
     const themeOf = acc => acc.theme === 'base' ? 'clean' : (validCustom(acc.theme) || validCustom(state.defaultTheme) || 'clean');
 
     /* ================= ธีมกรอบ ================= */
@@ -1316,11 +1330,14 @@
         // ท้ายกรอบ
         ctx.fillStyle = footInk; ctx.textAlign = 'center'; ctx.font = '500 30px Prompt, sans-serif';
         ctx.fillText('สแกนเพื่อโอนเงินด้วยแอปธนาคารใดก็ได้', W / 2, CY + CH + 84);
-        const th = THEMES.find(t => t.id === themeOf(acc));
-        if (th) {
-        ctx.save(); ctx.shadowColor = 'rgba(0,0,0,.25)'; ctx.shadowBlur = 8;
-        ctx.fillStyle = footInk; ctx.font = '700 54px Prompt, sans-serif';
-        ctx.fillText(th.title || 'QR รับเงิน', W / 2, CY - 70); ctx.restore();
+        const title = headerOf(acc);
+        if (title) {
+            const t = themeOf(acc);
+            const ink = t.startsWith('custom:') ? (bgImgs[t.slice(7)]?.inkTop || footInk) : footInk;
+            ctx.save(); ctx.shadowColor = ink === '#ffffff' ? 'rgba(0,0,0,.35)' : 'rgba(255,255,255,.6)'; ctx.shadowBlur = 10;
+            ctx.fillStyle = ink; ctx.textAlign = 'center';
+            fitFont(ctx, title, 700, 60, W - 160);
+            ctx.fillText(title, W / 2, CY - 80); ctx.restore();
         }
 
         return canvas;
@@ -1517,6 +1534,7 @@
         document.getElementById('fName').value = editing.name;
         document.getElementById('fPpId').value = editing.ppId || '';
         document.getElementById('fAccNo').value = editing.accNo || '';
+        document.getElementById('fHeader').value = editing.header || '';
         document.getElementById('fQrFile').value = '';
         if (editing.qr) setUploadState('ok', '✓ มี QR แล้ว — แตะเพื่อเปลี่ยนรูป');
         else setUploadState(null, 'แตะเพื่อเลือกรูป QR<br><small>เช่น QR รับเงินจาก K PLUS / SCB EASY (ภาพหน้าจอได้)</small>');
@@ -1590,6 +1608,7 @@
         e.name = document.getElementById('fName').value.trim();
         e.ppId = document.getElementById('fPpId').value.trim();
         e.accNo = document.getElementById('fAccNo').value.trim();
+        e.header = document.getElementById('fHeader').value.trim();
         if (!e.name) return showToast('กรุณาใส่ชื่อบัญชี');
         if (e.type === 'phone' && digits(e.ppId).length !== 10) return showToast('เบอร์ต้องมี 10 หลัก');
         if (e.type === 'idcard' && digits(e.ppId).length !== 13) return showToast('เลขบัตรต้องมี 13 หลัก');
@@ -1656,6 +1675,7 @@
             list.appendChild(el);
         });
         renderStorageInfo(); renderCloud(); renderFrames();
+        document.getElementById('cfgHeader').value = state.headerText != null ? state.headerText : 'QR รับเงิน';
     }
 
     /* ================= สำรองข้อมูล ================= */
@@ -1721,9 +1741,9 @@
             o.img.onload = () => {
                 const c = document.createElement('canvas'); c.width = 24; c.height = 24;
                 const x = c.getContext('2d'); x.drawImage(o.img, 0, 0, 24, 24);
-                const d = x.getImageData(0, 18, 24, 6).data; let L = 0;
-                for (let i = 0; i < d.length; i += 4) L += .299 * d[i] + .587 * d[i + 1] + .114 * d[i + 2];
-                o.ink = L / (d.length / 4) > 150 ? '#1a1a1a' : '#ffffff';
+                const lum = (y, h) => { const d = x.getImageData(0, y, 24, h).data; let L = 0; for (let i = 0; i < d.length; i += 4) L += .299 * d[i] + .587 * d[i + 1] + .114 * d[i + 2]; return L / (d.length / 4); };
+                o.ink = lum(18, 6) > 150 ? '#1a1a1a' : '#ffffff';
+                o.inkTop = lum(0, 4) > 150 ? '#1a1a1a' : '#ffffff';
                 renderThemes(); renderCard();
             };
             o.img.src = url;
@@ -1783,8 +1803,11 @@
         x.strokeStyle = '#2A9D8F'; x.lineWidth = 3; x.setLineDash([12, 10]); x.strokeRect(40, 40, W - 80, H - 80); x.setLineDash([]);
         x.fillStyle = '#2A9D8F'; x.font = '500 24px Prompt, sans-serif'; x.fillText('ขอบปลอดภัย 40px (ระวังโดนครอปเวลาแชร์)', W / 2, 30);
         // หัวกรอบ
-        x.fillStyle = '#1D3557'; x.font = '700 48px Prompt, sans-serif'; x.fillText('พื้นที่หัวกรอบ', W / 2, CY / 2 - 10);
-        x.font = '400 30px Prompt, sans-serif'; x.fillText(`ใส่ชื่อร้าน / ลาย / คำอวยพร  (สูง ${CY}px)`, W / 2, CY / 2 + 40);
+        x.fillStyle = '#1D3557'; x.font = '700 44px Prompt, sans-serif'; x.fillText(`พื้นที่หัวกรอบ (สูง ${CY}px)`, W / 2, 110);
+        x.font = '400 28px Prompt, sans-serif'; x.fillText('ใส่ลาย / โลโก้ร้านได้', W / 2, 156);
+        x.fillStyle = 'rgba(255,255,255,.6)'; x.fillRect(140, CY - 140, W - 280, 84);
+        x.fillStyle = '#1D3557'; x.font = '700 40px Prompt, sans-serif';
+        x.fillText('“ข้อความหัวสลิป” (แอปใส่ให้ ปิดได้)', W / 2, CY - 84);
         // การ์ด
         x.save(); x.shadowColor = 'rgba(0,0,0,.25)'; x.shadowBlur = 30;
         x.fillStyle = '#ffffff'; rr(x, CX, CY, CW, CH, 40); x.fill(); x.restore();
@@ -1832,8 +1855,8 @@
     }
     function setCloud(msg) { cloudMsg = msg; renderCloud(); }
     function cloudPayload() {
-        const { accounts, defaultId, defaultTheme, bgs, updatedAt } = state;
-        return { accounts, defaultId, defaultTheme: defaultTheme || '', bgs: (bgs || []).map(b => ({ id: b.id, name: b.name || '' })), updatedAt };
+        const { accounts, defaultId, defaultTheme, headerText, bgs, updatedAt } = state;
+        return { accounts, defaultId, defaultTheme: defaultTheme || '', headerText: headerText != null ? headerText : 'QR รับเงิน', bgs: (bgs || []).map(b => ({ id: b.id, name: b.name || '' })), updatedAt };
     }
     let syncing = false;
     const withTimeout = (p, ms = 20000) => Promise.race([p, new Promise((_, rej) => setTimeout(() => rej(new Error('หมดเวลาเชื่อมต่อ')), ms))]);
@@ -2016,6 +2039,8 @@
         document.getElementById('addAccBtn').addEventListener('click', () => openEditor(null));
         requestPersist();
         document.getElementById('bgFile').addEventListener('change', onBgFile);
+        const hdr = document.getElementById('cfgHeader');
+        hdr.addEventListener('input', () => { state.headerText = hdr.value; clearTimeout(hdr._t); hdr._t = setTimeout(() => { saveState(); renderCard(); }, 300); });
         document.getElementById('layoutBtn').addEventListener('click', downloadTemplate);
         document.getElementById('importFrameBtn').addEventListener('click', () => document.getElementById('bgFile').click());
         document.getElementById('cloudOut').addEventListener('submit', cloudLogin);
