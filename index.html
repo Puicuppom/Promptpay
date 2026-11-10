@@ -1328,15 +1328,32 @@
         ctx.restore();
 
         // ท้ายกรอบ
-        ctx.fillStyle = footInk; ctx.textAlign = 'center'; ctx.font = '500 30px Prompt, sans-serif';
-        ctx.fillText('สแกนเพื่อโอนเงินด้วยแอปธนาคารใดก็ได้', W / 2, CY + CH + 84);
+        const footTxt = 'สแกนเพื่อโอนเงินด้วยแอปธนาคารใดก็ได้';
+        ctx.textAlign = 'center'; ctx.font = '500 30px Prompt, sans-serif';
+        if (themeOf(acc).startsWith('custom:')) {
+            // กรอบที่นำเข้ามักมีลายเยอะ → วางข้อความบนป้ายพื้นขาว อ่านง่ายทุกพื้นหลัง
+            const tw = ctx.measureText(footTxt).width + 56, fy = CY + CH + 84;
+            ctx.save(); ctx.shadowColor = 'rgba(0,0,0,.18)'; ctx.shadowBlur = 16; ctx.shadowOffsetY = 4;
+            ctx.fillStyle = 'rgba(255,255,255,.94)'; rr(ctx, (W - tw) / 2, fy - 40, tw, 58, 29); ctx.fill(); ctx.restore();
+            ctx.fillStyle = '#1E293B'; ctx.fillText(footTxt, W / 2, fy);
+        } else {
+            ctx.fillStyle = footInk; ctx.fillText(footTxt, W / 2, CY + CH + 84);
+        }
         const title = headerOf(acc);
         if (title) {
             const t = themeOf(acc);
             const ink = t.startsWith('custom:') ? (bgImgs[t.slice(7)]?.inkTop || footInk) : footInk;
-            ctx.save(); ctx.shadowColor = ink === '#ffffff' ? 'rgba(0,0,0,.35)' : 'rgba(255,255,255,.6)'; ctx.shadowBlur = 10;
-            ctx.fillStyle = ink; ctx.textAlign = 'center';
-            fitFont(ctx, title, 700, 60, W - 160);
+            ctx.save(); ctx.textAlign = 'center';
+            const fs = fitFont(ctx, title, 700, 60, W - 200);
+            if (t.startsWith('custom:')) {
+                const tw = ctx.measureText(title).width + 72, ph = fs + 34;
+                ctx.save(); ctx.shadowColor = 'rgba(0,0,0,.18)'; ctx.shadowBlur = 18; ctx.shadowOffsetY = 4;
+                ctx.fillStyle = 'rgba(255,255,255,.94)'; rr(ctx, (W - tw) / 2, CY - 80 - fs * .78 - 17, tw, ph, ph / 2); ctx.fill(); ctx.restore();
+                ctx.fillStyle = '#0F172A';
+            } else {
+                ctx.shadowColor = ink === '#ffffff' ? 'rgba(0,0,0,.35)' : 'rgba(255,255,255,.6)'; ctx.shadowBlur = 10;
+                ctx.fillStyle = ink;
+            }
             ctx.fillText(title, W / 2, CY - 80); ctx.restore();
         }
 
