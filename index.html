@@ -448,6 +448,21 @@
         <button class="preview-close" id="previewClose">ปิด</button>
     </div>
 
+    <div class="overlay" id="lineHelp">
+        <div class="sheet">
+            <div class="sheet-handle"></div>
+            <div class="sheet-header">
+                <h3>ส่งเข้า LINE</h3>
+                <button class="icon-btn" data-close aria-label="ปิด"><svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button>
+            </div>
+            <div class="sheet-body">
+                <p id="lineHelpMsg" style="font-size:15px;line-height:1.7"></p>
+                <p class="field-hint" style="margin-top:10px">ถ้าแอป LINE ไม่เปิดขึ้นมา (ยังไม่ได้ติดตั้ง LINE บนคอม) ให้เปิด LINE เองแล้ววางรูปได้เลย</p>
+                <button class="btn-save" type="button" onclick="location.href='line://'">เปิดแอป LINE อีกครั้ง</button>
+            </div>
+        </div>
+    </div>
+
     <div class="toast" id="toast"></div>
 
     <div class="install-banner" id="installBanner">
@@ -1889,19 +1904,40 @@
             downloadBlob(blob); showToast('✓ บันทึกรูปแล้ว');
         } catch (e) { console.error(e); showToast('บันทึกไม่สำเร็จ ลองอีกครั้ง'); }
     }
+    const isMobile = () => /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
     async function shareQR() {
         try {
-            const blob = await exportBlob();
-            const file = new File([blob], fileName(), { type: 'image/png' });
-            if (navigator.share && navigator.canShare?.({ files: [file] })) {
-                await navigator.share({ files: [file], title: 'QR รับเงิน' });
-                return;
+            // คอม: เขียนคลิปบอร์ดทันทีตอนกด (ส่ง Promise ให้ ClipboardItem) เพื่อไม่ให้เบราว์เซอร์บล็อก
+            const blobP = exportBlob();
+            let clipP = null;
+            if (!isMobile() && navigator.clipboard && window.ClipboardItem) {
+                try { clipP = navigator.clipboard.write([new ClipboardItem({ 'image/png': blobP })]).then(() => true, () => false); } catch (e) { clipP = null; }
             }
-            if (isIOSUA()) { showPreview(blob); showToast('บันทึกรูปแล้วแชร์ LINE ได้'); return; }
-            downloadBlob(blob); showToast('บันทึกรูปแล้ว — เปิด LINE แนบได้เลย');
+            const blob = await blobP;
+            // มือถือ: เปิดหน้าแชร์ของระบบ → เลือก LINE → เลือกห้องแชท
+            if (isMobile()) {
+                const file = new File([blob], fileName(), { type: 'image/png' });
+                if (navigator.share && navigator.canShare?.({ files: [file] })) {
+                    await navigator.share({ files: [file], title: 'QR รับเงิน' });
+                    return;
+                }
+                if (isIOSUA()) { showPreview(blob); showToast('บันทึกรูปแล้วแชร์ LINE ได้'); return; }
+            }
+            // คอม: คัดลอกรูปลงคลิปบอร์ด แล้วเปิดแอป LINE → เลือกแชท → Ctrl+V
+            const copied = clipP ? await clipP : false;
+            if (!copied) downloadBlob(blob);
+            showLineHelp(copied);
+            setTimeout(() => { location.href = 'line://'; }, 300);
         } catch (e) {
             if (e.name !== 'AbortError') { console.error(e); showToast('แชร์ไม่สำเร็จ ลองกดบันทึกรูปแทน'); }
         }
+    }
+    function showLineHelp(copied) {
+        const o = document.getElementById('lineHelp');
+        document.getElementById('lineHelpMsg').innerHTML = copied
+            ? '<b>คัดลอกรูป QR แล้ว</b><br>กำลังเปิดแอป LINE → เลือกแชทที่จะส่ง → กด <b>Ctrl+V</b> แล้ว Enter'
+            : '<b>บันทึกรูป QR ลงเครื่องแล้ว</b><br>กำลังเปิดแอป LINE → เลือกแชท → ลากไฟล์รูปเข้าไป';
+        o.classList.add('open');
     }
 
     function shareText() {
