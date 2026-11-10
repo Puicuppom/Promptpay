@@ -103,6 +103,13 @@
             display: none; background: rgba(212,162,76,.1); border: 1px solid rgba(212,162,76,.3); color: var(--gold-2);
             border-radius: 14px; padding: 12px 14px; font-size: 13px; line-height: 1.4;
         }
+        .frame-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 10px; }
+        .frame-grid:empty { display: none; }
+        .frame-tile { position: relative; aspect-ratio: 9 / 16; border-radius: 10px; background: var(--surface) center/cover; border: 1px solid var(--line); overflow: hidden; }
+        .frame-tile .lbl { position: absolute; left: 0; right: 0; bottom: 0; font-size: 11px; text-align: center; background: rgba(0,0,0,.6); color: #fff; line-height: 20px; }
+        .frame-tile .cl { position: absolute; top: 3px; left: 4px; font-size: 13px; }
+        .frame-tile .x { position: absolute; top: 3px; right: 3px; border: none; background: rgba(0,0,0,.65); color: #fff; font-size: 11px; padding: 2px 6px; border-radius: 6px; cursor: pointer; font-family: inherit; }
+        .frame-tile .x.sure { background: var(--danger); }
         .theme-row { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; padding: 3px; }
         .theme-row::-webkit-scrollbar { display: none; }
         .cat-row { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; }
@@ -303,6 +310,15 @@
                 <div class="acc-list" id="accList"></div>
                 <button class="btn-add" id="addAccBtn">+ เพิ่มบัญชี</button>
                 <p class="field-hint" style="margin-top:8px">แตะ ☆ เพื่อตั้งบัญชีที่เปิดแอปแล้วแสดงก่อน · ▲▼ สลับลำดับ</p>
+                <div class="backup-box">
+                    <b>🖼 กรอบสลิปของฉัน</b>
+                    <p id="frameInfo"></p>
+                    <div class="frame-grid" id="frameGrid"></div>
+                    <div class="backup-btns">
+                        <button class="mini-btn" id="layoutBtn" type="button">📐 โหลด Layout</button>
+                        <button class="mini-btn" id="importFrameBtn" type="button">＋ นำเข้ากรอบ</button>
+                    </div>
+                </div>
                 <div class="backup-box cloud" id="cloudBox">
                     <b>☁️ เก็บบนคลาวด์ (Supabase)</b>
                     <form id="cloudOut" class="cloud-form" hidden>
@@ -1266,25 +1282,40 @@
         row.appendChild(el);
         renderMine(row, acc);
     }
+    // หน้าหลัก: เลือกกรอบอย่างเดียว (จัดการกรอบอยู่ในตั้งค่า)
     function renderMine(row, acc) {
-        const tile = (label, fn, cls = '') => {
-            const el = document.createElement('button'); el.className = 'theme-dot tool ' + cls;
-            el.innerHTML = label; el.onclick = fn; row.appendChild(el); return el;
-        };
-        tile('<b>📐</b><span>โหลด Layout</span>', downloadTemplate);
-        tile('<b>＋</b><span>นำเข้ากรอบ</span>', () => document.getElementById('bgFile').click());
-        bgList().forEach(b => {
+        row.style.display = bgList().length ? 'flex' : 'none';
+        bgList().forEach((b, i) => {
             const id = 'custom:' + b.id;
-            const el = tile('<span>กรอบของฉัน</span><i class="x" title="ลบ">×</i>', () => { acc.theme = id; saveState(); renderThemes(); renderCard(); },
-                themeOf(acc) === id ? 'active' : '');
-            el.classList.remove('tool');
+            const el = document.createElement('button');
+            el.className = 'theme-dot' + (themeOf(acc) === id ? ' active' : '');
+            el.innerHTML = `<span>กรอบ ${i + 1}</span>`;
             if (bgData[b.id]) el.style.backgroundImage = `url(${bgData[b.id]})`;
-            el.querySelector('.x').onclick = ev => {
-                ev.stopPropagation();
-                const x = ev.target;
-                if (!x.classList.contains('sure')) { x.classList.add('sure'); x.textContent = 'ลบ?'; setTimeout(() => { x.classList.remove('sure'); x.textContent = '×'; }, 2500); return; }
+            el.onclick = () => { acc.theme = id; saveState(); renderThemes(); renderCard(); };
+            row.appendChild(el);
+        });
+    }
+
+    // ตั้งค่า: จัดการกรอบ
+    function renderFrames() {
+        const grid = document.getElementById('frameGrid'); if (!grid) return;
+        grid.innerHTML = '';
+        const list = bgList();
+        document.getElementById('frameInfo').innerHTML = !list.length
+            ? 'ยังไม่มีกรอบ — โหลด Layout ไปออกแบบใน Canva (1080×1920) แล้วนำเข้า'
+            : (sbUser ? '☁️ กรอบที่นำเข้าจะเก็บบน Supabase ด้วย ใช้ได้ทุกเครื่อง' : '⚠️ ยังไม่ล็อกอินคลาวด์ — กรอบเก็บในเครื่องนี้เท่านั้น (ล็อกอินแล้วจะอัปโหลดให้)');
+        list.forEach((b, i) => {
+            const el = document.createElement('div');
+            el.className = 'frame-tile';
+            if (bgData[b.id]) el.style.backgroundImage = `url(${bgData[b.id]})`;
+            const cloud = sbUser && b.up === sbUser.id;
+            el.innerHTML = `<span class="lbl">กรอบ ${i + 1}</span><span class="cl">${cloud ? '☁️' : '📱'}</span><button class="x" type="button">ลบ</button>`;
+            const x = el.querySelector('.x');
+            x.onclick = () => {
+                if (!x.classList.contains('sure')) { x.classList.add('sure'); x.textContent = 'ยืนยัน?'; setTimeout(() => { x.classList.remove('sure'); x.textContent = 'ลบ'; }, 2500); return; }
                 deleteBg(b.id);
             };
+            grid.appendChild(el);
         });
     }
 
@@ -1482,7 +1513,7 @@
             };
             list.appendChild(el);
         });
-        renderStorageInfo(); renderCloud();
+        renderStorageInfo(); renderCloud(); renderFrames();
     }
 
     /* ================= สำรองข้อมูล ================= */
@@ -1580,8 +1611,8 @@
             if (!saveBgData()) { delete bgData[id]; return; }
             bgList().push({ id });
             const acc = activeAcc(); acc.theme = 'custom:' + id;
-            saveState(); renderThemes(); renderCard();
-            showToast('✓ นำเข้ากรอบแล้ว');
+            saveState(); renderThemes(); renderCard(); renderFrames();
+            showToast('✓ นำเข้ากรอบแล้ว' + (sbUser ? ' — กำลังอัปโหลดขึ้นคลาวด์' : ''));
         };
         im.onerror = () => showToast('เปิดรูปไม่ได้');
         im.src = url;
@@ -1592,7 +1623,7 @@
         state.accounts.forEach(a => { if (a.theme === gone) a.theme = 'carbon'; });
         const path = bgPath(id);
         delete bgData[id]; delete bgImgs[id]; saveBgData();
-        saveState(); renderThemes(); renderCard();
+        saveState(); renderThemes(); renderCard(); renderFrames();
         if (sbUser) sb.storage.from(SB_BUCKET).remove([path]).catch(() => {});
     }
     // Layout สำหรับออกแบบกรอบใน Canva (1080×1920 คงที่)
@@ -1652,7 +1683,7 @@
     async function onAuth(session) {
         const u = session ? session.user : null;
         const changed = (u && u.id) !== (sbUser && sbUser.id);
-        sbUser = u; renderCloud();
+        sbUser = u; renderCloud(); renderFrames();
         if (u && changed) await syncNow();
     }
     function setCloud(msg) { cloudMsg = msg; renderCloud(); }
@@ -1704,7 +1735,7 @@
             persistLocal();
             const { error } = await sb.from(SB_TABLE).upsert({ user_id: sbUser.id, data: cloudPayload(), updated_at: new Date(state.updatedAt || Date.now()).toISOString() });
             if (error) return setCloud('บันทึกขึ้นคลาวด์ไม่สำเร็จ: ' + error.message);
-            lastSync = new Date(); setCloud('✓ บันทึกบนคลาวด์แล้ว');
+            lastSync = new Date(); setCloud('✓ บันทึกบนคลาวด์แล้ว'); renderFrames();
         } catch (e) { setCloud('ออฟไลน์ — จะซิงก์ใหม่ภายหลัง'); }
     }
     function schedulePush() { if (!sbUser) return; clearTimeout(pushTimer); pushTimer = setTimeout(pushNow, 1500); }
@@ -1811,6 +1842,8 @@
         document.getElementById('addAccBtn').addEventListener('click', () => openEditor(null));
         requestPersist();
         document.getElementById('bgFile').addEventListener('change', onBgFile);
+        document.getElementById('layoutBtn').addEventListener('click', downloadTemplate);
+        document.getElementById('importFrameBtn').addEventListener('click', () => document.getElementById('bgFile').click());
         document.getElementById('cloudOut').addEventListener('submit', cloudLogin);
         document.getElementById('cloudSyncBtn').addEventListener('click', syncNow);
         document.getElementById('cloudLogoutBtn').addEventListener('click', async () => { await pushNow(); await sb.auth.signOut(); lastSync = null; setCloud(''); });
