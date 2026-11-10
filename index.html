@@ -2025,7 +2025,12 @@
         showToast('กดเมนู ⋯ แล้วเลือก "เปิดใน Safari"');
     }
     function initPWA() {
-        if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(() => {});
+        if ('serviceWorker' in navigator) {
+            const hadCtrl = !!navigator.serviceWorker.controller;
+            navigator.serviceWorker.register('sw.js').then(r => r.update()).catch(() => {});
+            // มีเวอร์ชันใหม่ → โหลดหน้าใหม่ 1 ครั้ง
+            navigator.serviceWorker.addEventListener('controllerchange', () => { if (hadCtrl && !window._swReloaded) { window._swReloaded = true; location.reload(); } });
+        }
         // เปิดลิงก์จาก LINE → เด้งไปเบราว์เซอร์จริงอัตโนมัติ (LINE รองรับพารามิเตอร์นี้)
         if (inAppName() === 'LINE' && !new URL(location.href).searchParams.has('openExternalBrowser')) { openExternal(); return; }
         if (isStandalone()) return;

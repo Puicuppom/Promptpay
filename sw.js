@@ -1,12 +1,13 @@
-const CACHE = 'promptpay-v18';
+const CACHE = 'promptpay-v19';
+// path แบบ relative — ใช้ได้ทั้ง Vercel (/) และ GitHub Pages (/Promptpay/)
 const ASSETS = [
-  '/',
-  '/index.html',
-  '/manifest.json',
-  '/icon.svg',
-  '/icon-192.png',
-  '/icon-512.png',
-  '/apple-touch-icon.png',
+  './',
+  'index.html',
+  'manifest.json',
+  'icon.svg',
+  'icon-192.png',
+  'icon-512.png',
+  'apple-touch-icon.png',
   'https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js',
   'https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js',
   'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js',
@@ -25,20 +26,21 @@ self.addEventListener('activate', (e) => {
   self.clients.claim();
 });
 
+const putCache = (req, res) => { if (res.ok) { const c = res.clone(); caches.open(CACHE).then((cache) => cache.put(req, c)); } return res; };
+
 self.addEventListener('fetch', (e) => {
   if (e.request.method !== 'GET') return;
   const url = new URL(e.request.url);
   if (!CACHE_HOSTS.includes(url.host)) return;
-  e.respondWith(
-    caches.match(e.request).then((cached) => {
-      const fetched = fetch(e.request).then((res) => {
-        if (res.ok) {
-          const clone = res.clone();
-          caches.open(CACHE).then((cache) => cache.put(e.request, clone));
-        }
-        return res;
-      }).catch(() => cached);
-      return cached || fetched;
-    })
-  );
+  const isPage = e.request.mode === 'navigate' || (url.host === self.location.host && /(\/|\.html|\.json|sw\.js)$/.test(url.pathname));
+  if (isPage) {
+    // หน้าเว็บ: เอาของใหม่จากเน็ตก่อน ออฟไลน์ค่อยใช้แคช
+    e.respondWith(fetch(e.request).then((res) => putCache(e.request, res)).catch(() => caches.match(e.request).then((c) => c || caches.match('index.html'))));
+    return;
+  }
+  // ไฟล์อื่น (รูป, ไลบรารี): ใช้แคชก่อน แล้วอัปเดตเบื้องหลัง
+  e.respondWith(caches.match(e.request).then((cached) => {
+    const fetched = fetch(e.request).then((res) => putCache(e.request, res)).catch(() => cached);
+    return cached || fetched;
+  }));
 });
