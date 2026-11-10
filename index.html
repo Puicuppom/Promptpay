@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
-    <meta name="theme-color" content="#00468C">
+    <meta name="theme-color" content="#0D1015">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -16,674 +16,267 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
     <style>
         :root {
-            --pp-blue: #00468C;
-            --pp-blue-light: #005fa8;
-            --text: #1a1a1a;
-            --muted: #888888;
-            --bg: #f0f4f8;
-            --white: #ffffff;
-            --radius: 20px;
+            --gold: #D4A24C;
+            --gold-2: #F0C878;
+            --pp-blue: #D4A24C;
+            --text: #E9EDF3;
+            --muted: #8D97A6;
+            --line: #2E3642;
+            --bg: #0D1015;
+            --surface: #181D25;
+            --surface-2: #222934;
+            --danger: #FF5A5A;
         }
-
         * { box-sizing: border-box; margin: 0; padding: 0; }
-
+        [hidden] { display: none !important; }
         html, body {
-            height: 100%;
-            width: 100%;
-            max-width: 100vw;
-            overflow: hidden;
-            overscroll-behavior: none;
-            -webkit-text-size-adjust: 100%;
-            touch-action: manipulation;
+            height: 100%; width: 100%; overflow: hidden;
+            overscroll-behavior: none; -webkit-text-size-adjust: 100%; touch-action: manipulation;
         }
-
         body {
-            font-family: 'Prompt', sans-serif;
-            background: var(--bg);
-            color: var(--text);
-        }
-
-        /* ── Background ── */
-        .bg {
-            position: fixed;
-            inset: 0;
+            font-family: 'Prompt', sans-serif; color: var(--text); -webkit-tap-highlight-color: transparent;
             background:
-                radial-gradient(ellipse 80% 60% at 50% -10%, rgba(0,70,140,0.12) 0%, transparent 60%),
-                radial-gradient(ellipse 60% 50% at 100% 100%, rgba(0,70,140,0.08) 0%, transparent 50%),
+                radial-gradient(120% 60% at 50% 0%, #1D2430 0%, transparent 60%),
+                repeating-linear-gradient(45deg, rgba(255,255,255,.015) 0 2px, transparent 2px 6px),
                 var(--bg);
-            z-index: 0;
         }
+        button { font-family: inherit; }
+        svg { fill: currentColor; }
 
         .app {
-            position: relative;
-            z-index: 1;
-            width: 100%;
-            max-width: 100vw;
-            height: 100dvh;
-            height: 100svh;
-            margin: 0 auto;
-            padding:
-                max(env(safe-area-inset-top), 4px)
-                max(env(safe-area-inset-right), 10px)
-                max(env(safe-area-inset-bottom), 4px)
-                max(env(safe-area-inset-left), 10px);
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-            overflow: hidden;
+            height: 100dvh; display: flex; flex-direction: column; gap: 8px;
+            padding: max(env(safe-area-inset-top), 6px) max(env(safe-area-inset-right), 12px)
+                     max(env(safe-area-inset-bottom), 10px) max(env(safe-area-inset-left), 12px);
+            max-width: 520px; margin: 0 auto;
         }
 
-        /* แนวตั้ง — มือถือ */
-        @media (orientation: portrait) {
-            .app { gap: 4px; }
-            .slip-qr { padding: 14px 18px 10px; }
-            .slip-info { padding: 10px 16px 12px; }
-        }
-
-        /* จอเล็กมาก */
-        @media (orientation: portrait) and (max-height: 680px) {
-            .topbar-title { font-size: 14px; }
-            .icon-btn { width: 34px; height: 34px; }
-            .controls { padding: 6px 8px; }
-            .mode-pills { margin-bottom: 6px; }
-            .pill { padding: 6px 2px; font-size: 11px; }
-            .btn { padding: 9px 6px; font-size: 13px; }
-            .thai-bar { padding: 5px 10px; font-size: 10px; }
-        }
-
-        /* แนวนอน — ให้หมุนจอ */
-        .rotate-hint {
-            display: none;
-            position: fixed;
-            inset: 0;
-            z-index: 9999;
-            background: var(--pp-blue);
-            color: #fff;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            padding: 24px;
-            gap: 16px;
-        }
-
-        .rotate-hint svg {
-            width: 64px;
-            height: 64px;
-            fill: #fff;
-            animation: rotatePhone 2s ease-in-out infinite;
-        }
-
-        @keyframes rotatePhone {
-            0%, 100% { transform: rotate(0deg); }
-            50% { transform: rotate(90deg); }
-        }
-
-        .rotate-hint p {
-            font-size: 18px;
-            font-weight: 600;
-            line-height: 1.5;
-        }
-
-        @media (orientation: landscape) and (max-height: 520px) {
-            .rotate-hint { display: flex; }
-            .app, .bg, .install-banner, .toast { visibility: hidden; pointer-events: none; }
-        }
-
-        /* ── Top bar ── */
-        .topbar {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 2px 0;
-            flex-shrink: 0;
-        }
-
-        .topbar-title {
-            font-size: 15px;
-            font-weight: 600;
-            color: var(--pp-blue);
-        }
-
-        .topbar-actions {
-            display: flex;
-            gap: 6px;
-            flex-shrink: 0;
-        }
-
+        .topbar { display: flex; align-items: center; justify-content: space-between; min-height: 44px; }
+        .brand { display: flex; align-items: center; gap: 10px; }
+        .brand img { width: 32px; height: 32px; border-radius: 9px; box-shadow: 0 0 0 1px rgba(212,162,76,.35); }
+        .topbar-title { font-weight: 700; font-size: 18px; letter-spacing: .3px;
+            background: linear-gradient(90deg, var(--gold-2), var(--gold)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+        .topbar-actions { display: flex; gap: 6px; }
         .icon-btn {
-            width: 36px; height: 36px;
-            border: none;
-            border-radius: 10px;
-            background: var(--white);
-            color: var(--pp-blue);
-            cursor: pointer;
-            display: flex; align-items: center; justify-content: center;
-            box-shadow: 0 2px 8px rgba(0,70,140,0.1);
-            flex-shrink: 0;
+            width: 40px; height: 40px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface);
+            color: #C9D1DC; display: flex; align-items: center; justify-content: center; cursor: pointer;
+        }
+        .icon-btn svg { width: 22px; height: 22px; }
+
+        .acc-row { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; padding: 2px; flex-shrink: 0; }
+        .acc-row::-webkit-scrollbar { display: none; }
+        .acc-chip {
+            display: flex; align-items: center; gap: 8px; flex-shrink: 0;
+            padding: 6px 14px 6px 6px; border-radius: 999px; border: 1.5px solid var(--line);
+            background: var(--surface); cursor: pointer; font-size: 14px; font-weight: 500; color: #C9D1DC; max-width: 220px;
+        }
+        .acc-chip span.lbl { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .acc-chip.active { border-color: var(--gold); color: #fff; box-shadow: 0 0 0 3px rgba(212,162,76,.15); }
+        .acc-chip.add { padding: 6px 14px; color: var(--gold); border-style: dashed; }
+        .badge {
+            width: 30px; height: 30px; border-radius: 50%; flex-shrink: 0; display: flex;
+            align-items: center; justify-content: center; color: #fff; font-weight: 700; font-size: 11px;
+            letter-spacing: -.3px; overflow: hidden;
         }
 
-        .icon-btn:active { transform: scale(0.95); }
-        .icon-btn svg { width: 18px; height: 18px; fill: currentColor; }
-
-        /* ── QR Slip ── */
-        .slip {
-            background: var(--white);
-            border-radius: 14px;
-            box-shadow: 0 4px 20px rgba(0,70,140,0.1);
-            overflow: hidden;
-            flex: 1;
-            min-height: 0;
-            display: flex;
-            flex-direction: column;
+        .stage { flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; }
+        .stage canvas {
+            max-width: 100%; max-height: 100%; width: auto; height: auto; border-radius: 18px;
+            box-shadow: 0 14px 40px rgba(0,0,0,.55), 0 0 0 1px rgba(255,255,255,.04);
         }
 
-        .slip-qr {
-            flex: 1;
-            min-height: 0;
-            padding: 14px 18px 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .qr-frame {
-            padding: 14px;
-            background: #fff;
-            border-radius: 10px;
-            box-shadow: inset 0 0 0 1px #ebebeb;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        #promptpayQr {
-            width: var(--qr-size, 200px);
-            height: var(--qr-size, 200px);
-            flex-shrink: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-            line-height: 0;
-        }
-
-        #promptpayQr table { display: none !important; }
-
-        #promptpayQr img,
-        #promptpayQr canvas {
-            display: block !important;
-            width: 100% !important;
-            height: 100% !important;
-            margin: 0 !important;
-            padding: 0 !important;
-            object-fit: contain;
-        }
-
-        .thai-bar {
-            background: var(--pp-blue);
-            color: #fff;
-            text-align: center;
-            font-size: 11px;
-            font-weight: 700;
-            letter-spacing: 1px;
-            padding: 7px 12px;
-            flex-shrink: 0;
-        }
-
-        .slip-info {
-            padding: 10px 16px 12px;
-            text-align: center;
-            flex-shrink: 0;
-        }
-
-        .slip-name {
-            font-size: clamp(13px, 3.6vw, 16px);
-            font-weight: 700;
-            color: var(--text);
-            line-height: 1.25;
-            margin-bottom: 3px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .slip-id {
-            font-size: clamp(11px, 2.8vw, 12px);
-            color: var(--muted);
-        }
-
-        .slip-amount {
-            display: none;
-            font-size: clamp(18px, 5vw, 22px);
-            font-weight: 700;
-            color: var(--pp-blue);
-            margin-top: 4px;
-        }
-
-        .slip-amount.show { display: block; }
-
-        /* ── Controls ── */
-        .controls {
-            background: var(--white);
-            border-radius: 14px;
-            padding: 8px 10px;
-            box-shadow: 0 2px 8px rgba(0,70,140,0.06);
-            flex-shrink: 0;
-        }
-
-        .mode-pills {
-            display: flex;
-            gap: 6px;
-            margin-bottom: 8px;
-        }
-
-        .pill {
-            flex: 1;
-            border: 1.5px solid #e8ecf0;
-            background: #fafbfc;
-            border-radius: 10px;
-            padding: 7px 4px;
-            font-family: inherit;
-            font-size: 12px;
-            font-weight: 600;
-            color: var(--muted);
-            cursor: pointer;
-        }
-
-        .pill.active {
-            background: var(--pp-blue);
-            border-color: var(--pp-blue);
-            color: #fff;
-        }
-
+        .controls { display: flex; flex-direction: column; gap: 8px; flex-shrink: 0; }
         .amount-field {
-            display: flex;
-            align-items: center;
-            background: #fafbfc;
-            border: 1.5px solid #e8ecf0;
-            border-radius: 10px;
-            padding: 2px 10px;
+            display: flex; align-items: center; gap: 8px; background: var(--surface); border: 1px solid var(--line);
+            border-radius: 14px; padding: 0 14px; height: 48px;
         }
-
-        .amount-field span {
-            font-size: 16px;
-            font-weight: 700;
-            color: var(--pp-blue);
-            margin-right: 4px;
-        }
-
+        .amount-field:focus-within { border-color: var(--gold); }
+        .amount-field span { font-weight: 700; color: var(--gold); font-size: 18px; }
         .amount-field input {
-            flex: 1;
-            border: none;
-            background: transparent;
-            font-family: inherit;
-            font-size: 16px;
-            font-weight: 600;
-            color: var(--text);
-            outline: none;
-            min-width: 0;
-            padding: 6px 0;
+            flex: 1; border: none; outline: none; font-family: inherit; font-size: 17px; background: transparent; min-width: 0; color: var(--text);
         }
-
-        .amount-field input::placeholder { color: #ccc; }
-
-        /* ── Actions ── */
-        .actions {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 8px;
-            flex-shrink: 0;
+        .amount-field input::placeholder { color: #5F6978; }
+        .fixed-note {
+            display: none; background: rgba(212,162,76,.1); border: 1px solid rgba(212,162,76,.3); color: var(--gold-2);
+            border-radius: 14px; padding: 12px 14px; font-size: 13px; line-height: 1.4;
         }
+        .theme-row { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; padding: 3px; }
+        .theme-row::-webkit-scrollbar { display: none; }
+        .cat-row { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; }
+        .cat-row::-webkit-scrollbar { display: none; }
+        .cat-pill {
+            flex-shrink: 0; border: 1px solid var(--line); background: transparent; color: var(--muted);
+            border-radius: 999px; padding: 5px 12px; font-size: 13px; cursor: pointer;
+        }
+        .cat-pill.active { background: var(--gold); border-color: var(--gold); color: #1A1408; font-weight: 600; }
+        .theme-dot {
+            flex-shrink: 0; width: 64px; height: 46px; border-radius: 12px; border: 2px solid #2A313C; cursor: pointer;
+            background-size: cover; background-position: center; position: relative; overflow: hidden; padding: 0;
+        }
+        .theme-dot span {
+            position: absolute; left: 0; right: 0; bottom: 0; font-size: 10px; line-height: 1.6; color: #fff;
+            background: rgba(0,0,0,.55); text-align: center; white-space: nowrap; overflow: hidden;
+        }
+        .theme-dot.active { border-color: var(--gold); box-shadow: 0 0 0 3px rgba(212,162,76,.25); }
 
+        .actions { display: grid; grid-template-columns: 1fr 1.4fr; gap: 10px; flex-shrink: 0; }
         .btn {
-            border: none;
-            border-radius: 12px;
-            padding: 11px 8px;
-            font-family: inherit;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
+            height: 50px; border-radius: 14px; border: none; font-size: 16px; font-weight: 600;
+            display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer;
+        }
+        .btn svg { width: 20px; height: 20px; }
+        .btn-ghost { background: var(--surface); color: var(--text); border: 1px solid var(--line); }
+        .btn-line { background: #06C755; color: #fff; box-shadow: 0 6px 18px rgba(6,199,85,.25); }
+        .btn-line .line-ic { width: 24px; height: 24px; }
+        .btn-text {
+            grid-column: 1 / -1; height: 40px; border-radius: 12px; border: 1px dashed #2F5E3F; background: transparent;
+            color: #4BE08A; font-size: 14px; display: flex; align-items: center; justify-content: center; gap: 6px; cursor: pointer;
         }
 
-        .btn:active { transform: scale(0.97); }
-        .btn svg { width: 17px; height: 17px; fill: currentColor; }
-
-        .btn-ghost {
-            background: var(--white);
-            color: var(--pp-blue);
-            border: 1.5px solid #dde3ea;
-        }
-
-        .btn-fill {
-            background: var(--pp-blue);
-            color: #fff;
-        }
-
-        .btn-line {
-            background: #06C755;
-            color: #fff;
-        }
-
-        /* ── Settings modal ── */
         .overlay {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: rgba(0,30,60,0.45);
-            backdrop-filter: blur(6px);
-            z-index: 100;
-            align-items: flex-end;
-            justify-content: center;
+            position: fixed; inset: 0; background: rgba(0,0,0,.6); z-index: 100;
+            display: flex; align-items: flex-end; justify-content: center;
+            opacity: 0; pointer-events: none; transition: opacity .2s;
         }
-
-        .overlay.open { display: flex; animation: fadeIn 0.2s ease; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
+        .overlay.open { opacity: 1; pointer-events: auto; }
         .sheet {
-            background: #fff;
-            border-radius: 24px 24px 0 0;
-            width: 100%;
-            max-width: 420px;
-            max-height: 88vh;
-            overflow-y: auto;
-            animation: slideUp 0.32s cubic-bezier(0.22, 1, 0.36, 1);
-            padding-bottom: max(env(safe-area-inset-bottom), 20px);
+            background: var(--surface); width: 100%; max-width: 520px; border-radius: 22px 22px 0 0; border-top: 1px solid var(--line);
+            max-height: 92dvh; display: flex; flex-direction: column;
+            transform: translateY(30px); transition: transform .2s;
+            padding-bottom: max(env(safe-area-inset-bottom), 12px);
         }
+        .overlay.open .sheet { transform: none; }
+        .sheet-handle { width: 40px; height: 4px; background: #3A4350; border-radius: 4px; margin: 10px auto 0; }
+        .sheet-header { display: flex; align-items: center; justify-content: space-between; padding: 8px 16px 6px; }
+        .sheet-header h3 { font-size: 18px; }
+        .sheet-header .icon-btn { background: var(--surface-2); }
+        .sheet-body { overflow-y: auto; padding: 4px 16px 16px; -webkit-overflow-scrolling: touch; }
 
-        @keyframes slideUp {
-            from { transform: translateY(100%); }
-            to { transform: translateY(0); }
+        .acc-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
+        .acc-item { display: flex; flex-direction: column; gap: 8px; padding: 10px 12px; border-radius: 14px; background: var(--surface-2); border: 1px solid transparent; }
+        .acc-item.is-default { border-color: rgba(212,162,76,.5); }
+        .acc-top { display: flex; align-items: center; gap: 12px; }
+        .acc-tools { display: flex; align-items: center; gap: 6px; }
+        .acc-tools .def-tag { flex: 1; font-size: 12px; color: var(--gold); }
+        .mini-btn:disabled { opacity: .3; }
+        .star-btn { border: none; background: none; font-size: 24px; color: var(--gold); cursor: pointer; width: 36px; height: 36px; }
+        .backup-box { margin-top: 16px; padding: 12px; border-radius: 14px; background: var(--bg); border: 1px solid var(--line); }
+        .backup-box b { font-size: 14px; }
+        .backup-box p { font-size: 12.5px; color: var(--muted); margin: 6px 0 10px; line-height: 1.55; }
+        .backup-box p b { font-size: 12.5px; color: var(--text); }
+        .backup-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .backup-btns .mini-btn { height: 40px; }
+        .cloud-form { display: flex; flex-direction: column; gap: 8px; }
+        .cloud-form input { height: 44px; border: 1.5px solid var(--line); border-radius: 12px; padding: 0 12px; background: var(--surface); color: var(--text); font-family: inherit; font-size: 16px; outline: none; }
+        .cloud-form input:focus { border-color: var(--gold); }
+        .cloud-form .err { color: var(--danger); margin: 0; }
+        .theme-dot.tool { background: var(--surface); color: var(--gold); display: flex; flex-direction: column; align-items: center; justify-content: center; border-style: dashed; }
+        .theme-dot.tool b { font-size: 18px; line-height: 1; margin-top: -8px; }
+        .theme-dot .x { position: absolute; top: 0; right: 0; font-style: normal; background: rgba(0,0,0,.65); color: #fff; font-size: 12px; padding: 0 6px; border-radius: 0 0 0 8px; line-height: 18px; }
+        .theme-dot .x.sure { background: var(--danger); }
+        .acc-item .badge { width: 40px; height: 40px; font-size: 13px; }
+        .acc-item .meta { flex: 1; min-width: 0; }
+        .acc-item .meta b { display: block; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .acc-item .meta small { color: var(--muted); font-size: 12.5px; }
+        .mini-btn {
+            border: 1px solid var(--line); background: var(--surface); border-radius: 10px; height: 34px; padding: 0 10px;
+            font-size: 13px; color: #C9D1DC; cursor: pointer; flex-shrink: 0;
         }
+        .mini-btn.del { color: var(--danger); }
+        .mini-btn.confirm { background: var(--danger); color: #fff; border-color: var(--danger); }
 
-        .sheet-handle {
-            width: 36px; height: 4px;
-            background: #ddd;
-            border-radius: 2px;
-            margin: 12px auto 0;
+        .seg { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; background: var(--bg); padding: 4px; border-radius: 12px; }
+        .seg button { border: none; background: transparent; border-radius: 9px; padding: 9px 4px; font-size: 13px; cursor: pointer; color: var(--muted); }
+        .seg button.active { background: var(--surface-2); color: var(--gold-2); font-weight: 600; box-shadow: inset 0 0 0 1px rgba(212,162,76,.4); }
+
+        .field { margin-top: 12px; }
+        .field label { display: block; font-size: 13px; color: var(--muted); margin-bottom: 5px; font-weight: 500; }
+        .field input, .field select {
+            width: 100%; height: 46px; border: 1.5px solid var(--line); border-radius: 12px;
+            padding: 0 12px; font-family: inherit; font-size: 16px; background: var(--bg); outline: none; color: var(--text);
         }
+        .field input:focus, .field select:focus { border-color: var(--gold); }
+        .logo-pick { display: flex; align-items: center; gap: 8px; }
+        .logo-pick .badge { width: 44px; height: 44px; font-size: 13px; }
+        .field-hint { font-size: 12px; color: #6B7584; margin-top: 4px; }
 
-        .sheet-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 16px 20px 8px;
-        }
-
-        .sheet-header h3 {
-            font-size: 18px;
-            font-weight: 700;
-            color: var(--pp-blue);
-        }
-
-        .sheet-body { padding: 8px 20px 4px; }
-
-        .field { margin-bottom: 16px; }
-
-        .field label {
-            display: block;
-            font-size: 13px;
-            font-weight: 600;
-            color: var(--muted);
-            margin-bottom: 6px;
-        }
-
-        .field input {
-            width: 100%;
-            border: 1.5px solid #e8ecf0;
-            border-radius: 12px;
-            padding: 12px 14px;
-            font-family: inherit;
-            font-size: 16px;
-            transition: border-color 0.2s;
-        }
-
-        .field input:focus {
-            outline: none;
-            border-color: var(--pp-blue);
-            box-shadow: 0 0 0 3px rgba(0,70,140,0.1);
-        }
-
-        .field-hint {
-            font-size: 11px;
-            color: #aaa;
-            margin-top: 4px;
-        }
-
-        .field-divider {
-            font-size: 11px;
-            font-weight: 700;
-            color: var(--pp-blue);
-            letter-spacing: 0.5px;
-            text-transform: uppercase;
-            margin: 20px 0 12px;
-            padding-top: 16px;
-            border-top: 1px solid #f0f0f0;
-        }
-
-        .field-divider:first-child {
-            margin-top: 0;
-            padding-top: 0;
-            border-top: none;
-        }
+        .upload-box { border: 2px dashed #3A4350; border-radius: 14px; padding: 16px; text-align: center; cursor: pointer; color: var(--muted); font-size: 14px; display: block; }
+        .upload-box.ok { border-color: #2fa36b; background: rgba(47,163,107,.08); color: #5BD69A; }
+        .upload-box.err { border-color: var(--danger); background: rgba(255,90,90,.08); color: var(--danger); }
+        .upload-box img { max-width: 120px; max-height: 120px; display: block; margin: 0 auto 8px; border-radius: 8px; }
 
         .btn-save {
-            width: 100%;
-            margin-top: 8px;
-            padding: 15px;
-            border: none;
-            border-radius: 14px;
-            background: var(--pp-blue);
-            color: #fff;
-            font-family: inherit;
-            font-size: 16px;
-            font-weight: 700;
-            cursor: pointer;
-            box-shadow: 0 4px 14px rgba(0,70,140,0.3);
+            width: 100%; height: 50px; border: none; border-radius: 14px; background: linear-gradient(135deg, var(--gold-2), var(--gold));
+            color: #1A1408; font-size: 16px; font-weight: 700; margin-top: 18px; cursor: pointer;
+        }
+        .btn-add {
+            width: 100%; height: 48px; border: 1.5px dashed var(--gold); border-radius: 14px;
+            background: rgba(212,162,76,.06); color: var(--gold); font-size: 15px; font-weight: 600; cursor: pointer;
         }
 
         .toast {
-            position: fixed;
-            bottom: max(env(safe-area-inset-bottom), 24px);
-            left: 50%;
-            transform: translateX(-50%) translateY(80px);
-            background: var(--pp-blue);
-            color: #fff;
-            padding: 12px 24px;
-            border-radius: 999px;
-            font-size: 14px;
-            font-weight: 500;
-            opacity: 0;
-            transition: all 0.35s ease;
-            z-index: 200;
-            pointer-events: none;
-            white-space: nowrap;
+            position: fixed; left: 50%; bottom: 120px; transform: translateX(-50%) translateY(20px);
+            background: #2A313C; color: #fff; padding: 10px 18px; border-radius: 12px; border: 1px solid #3A4350;
+            font-size: 14px; opacity: 0; pointer-events: none; transition: all .25s; z-index: 300; white-space: nowrap;
         }
+        .toast.show { opacity: 1; transform: translateX(-50%); }
 
-        .toast.show {
-            opacity: 1;
-            transform: translateX(-50%) translateY(0);
+        .preview-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,.92); z-index: 200; display: none;
+            flex-direction: column; align-items: center; justify-content: center; gap: 16px; padding: 24px;
         }
+        .preview-overlay.open { display: flex; }
+        .preview-overlay img { max-width: 100%; max-height: 70dvh; border-radius: 12px; }
+        .preview-hint { color: #fff; text-align: center; font-size: 15px; line-height: 1.5; }
+        .preview-close { border: none; background: var(--gold); color: #1A1408; font-size: 16px; font-weight: 700; padding: 12px 32px; border-radius: 12px; cursor: pointer; }
 
         .install-banner {
-            display: none;
-            position: fixed;
-            top: max(env(safe-area-inset-top), 8px);
-            left: 10px;
-            right: 10px;
-            background: var(--white);
-            border-radius: 12px;
-            padding: 10px 12px;
-            box-shadow: 0 4px 20px rgba(0,70,140,0.18);
-            z-index: 150;
-            align-items: center;
-            gap: 8px;
+            display: none; position: fixed; top: max(env(safe-area-inset-top), 8px); left: 10px; right: 10px;
+            background: var(--surface-2); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px;
+            box-shadow: 0 8px 24px rgba(0,0,0,.5); z-index: 150; align-items: center; gap: 8px; max-width: 500px; margin: 0 auto;
         }
-
         .install-banner.show { display: flex; }
-
-        .install-banner img {
-            width: 36px;
-            height: 36px;
-            border-radius: 8px;
-            flex-shrink: 0;
-        }
-
-        .install-banner-text strong { font-size: 13px; }
-        .install-banner-text span { font-size: 10px; }
-        .install-go { font-size: 11px; padding: 6px 10px; }
-
-        .install-banner-text {
-            flex: 1;
-            min-width: 0;
-        }
-
-        .install-banner-text strong {
-            display: block;
-            font-size: 14px;
-            color: var(--text);
-        }
-
-        .install-banner-text span {
-            font-size: 11px;
-            color: var(--muted);
-        }
-
-        .install-banner-btns {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-            flex-shrink: 0;
-        }
-
-        .install-go {
-            border: none;
-            border-radius: 8px;
-            background: var(--pp-blue);
-            color: #fff;
-            font-family: inherit;
-            font-size: 12px;
-            font-weight: 600;
-            padding: 7px 12px;
-            cursor: pointer;
-            white-space: nowrap;
-        }
-
-        .install-dismiss {
-            border: none;
-            background: none;
-            color: var(--muted);
-            font-family: inherit;
-            font-size: 11px;
-            cursor: pointer;
-        }
-
-        .ios-steps {
-            font-size: 14px;
-            color: var(--text);
-            line-height: 1.7;
-            padding: 8px 0;
-        }
-
-        .ios-steps ol {
-            margin: 8px 0 0 18px;
-        }
-
-        /* Preview สำหรับบันทึกรูปบน iOS */
-        .preview-overlay {
-            display: none;
-            position: fixed;
-            inset: 0;
-            z-index: 300;
-            background: rgba(0,0,0,0.85);
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
-
-        .preview-overlay.open { display: flex; }
-
-        .preview-overlay img {
-            max-width: 100%;
-            max-height: 70vh;
-            border-radius: 12px;
-            background: #fff;
-        }
-
-        .preview-hint {
-            color: #fff;
-            text-align: center;
-            margin-top: 16px;
-            font-size: 15px;
-            line-height: 1.6;
-        }
-
-        .preview-close {
-            margin-top: 20px;
-            border: none;
-            background: #fff;
-            color: var(--pp-blue);
-            font-family: inherit;
-            font-size: 16px;
-            font-weight: 600;
-            padding: 12px 32px;
-            border-radius: 12px;
-            cursor: pointer;
-        }
+        .install-banner img { width: 36px; height: 36px; border-radius: 8px; }
+        .install-banner-text { flex: 1; display: flex; flex-direction: column; font-size: 13px; }
+        .install-banner-text span { color: var(--muted); font-size: 12px; }
+        .install-banner-btns { display: flex; gap: 6px; }
+        .install-go, .install-dismiss { border: none; border-radius: 9px; padding: 7px 10px; font-size: 13px; cursor: pointer; }
+        .install-go { background: var(--gold); color: #1A1408; font-weight: 600; }
+        .install-dismiss { background: var(--surface); color: var(--muted); }
+        .ios-steps { font-size: 14px; line-height: 1.7; }
+        .ios-steps ol { padding-left: 20px; }
     </style>
 </head>
 <body>
-    <div class="rotate-hint" aria-live="polite">
-        <svg viewBox="0 0 24 24"><path d="M16.48 2.52c3.27 3.27 3.27 8.58 0 11.86l-1.41-1.41c2.44-2.44 2.44-6.41 0-8.85l1.41-1.41zM7.05 16.95l1.41 1.41c-3.27 3.27-8.58 3.27-11.86 0l1.41-1.41c2.44 2.44 6.41 2.44 8.85 0l-.81-.81 1.41-1.41.81.81zM19.07 4.93l-1.41 1.41 1.41 1.41c.78.78.78 2.05 0 2.83l-1.41 1.41-1.41-1.41 1.41-1.41c.39-.39.39-1.02 0-1.41l-1.41-1.41 1.41-1.41zM4.93 19.07l1.41-1.41-1.41-1.41c-.78-.78-.78-2.05 0-2.83l1.41-1.41 1.41 1.41-1.41 1.41c-.39.39-.39 1.02 0 1.41l1.41 1.41-1.41 1.41zM17 1H7v2h10V1zm0 20H7v2h10v-2zM1 7v10h2V7H1zm20 0v10h2V7h-2z"/></svg>
-        <p>กรุณาหมุนหน้าจอ<br><strong>แนวตั้ง</strong> เพื่อใช้งาน</p>
-    </div>
-    <div class="bg"></div>
-
     <div class="app">
         <div class="topbar">
-            <span class="topbar-title">QR รับเงิน</span>
+            <div class="brand"><img src="/icon-192.png" alt=""><span class="topbar-title">QR รับเงิน</span></div>
             <div class="topbar-actions">
                 <button class="icon-btn" id="installBtn" aria-label="ติดตั้งแอป" style="display:none;">
                     <svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
                 </button>
-                <button class="icon-btn" id="settingsBtn" aria-label="ตั้งค่า">
+                <button class="icon-btn" id="settingsBtn" aria-label="จัดการบัญชี">
                     <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.31.06-.63.06-.94 0-.31-.02-.63-.06-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.04.31-.06.63-.06.94s.02.63.06.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
                 </button>
             </div>
         </div>
 
-        <!-- QR Slip -->
-        <div class="slip" id="slip">
-            <div class="slip-qr">
-                <div class="qr-frame">
-                    <div id="promptpayQr"></div>
-                </div>
-            </div>
-            <div class="thai-bar">THAI QR PAYMENT</div>
-            <div class="slip-info">
-                <p class="slip-name" id="displayName">-</p>
-                <p class="slip-id" id="displayDetail">-</p>
-                <p class="slip-amount" id="displayAmount"></p>
-            </div>
-        </div>
+        <div class="acc-row" id="accRow"></div>
 
-        <!-- Controls -->
+        <div class="stage" id="stage"><canvas id="cardCanvas" aria-label="QR รับเงิน"></canvas></div>
+
         <div class="controls">
-            <div class="mode-pills">
-                <button class="pill active" data-mode="phone">📱 เบอร์โทร</button>
-                <button class="pill" data-mode="idcard">🪪 เลขบัตร</button>
-            </div>
-            <div class="amount-field">
+            <div class="amount-field" id="amountField">
                 <span>฿</span>
                 <input type="number" id="amountInput" placeholder="จำนวนเงิน (ไม่บังคับ)" min="0" step="0.01" inputmode="decimal">
             </div>
+            <div class="fixed-note" id="fixedNote">QR ธนาคารแบบคงที่ — ผู้โอนกรอกยอดเงินเองในแอป</div>
+            <div class="cat-row" id="themeCats"></div>
+            <div class="theme-row" id="themeRow"></div>
+            <input type="file" id="bgFile" accept="image/*" hidden>
         </div>
 
         <div class="actions">
@@ -692,48 +285,116 @@
                 บันทึกรูป
             </button>
             <button class="btn btn-line" id="shareBtn">
-                <svg viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92-1.31-2.92-2.92-2.92z"/></svg>
-                แชร์ LINE
+                <svg class="line-ic" viewBox="0 0 24 24"><path d="M12 2.5C6.2 2.5 1.5 6.3 1.5 11c0 4.2 3.7 7.7 8.8 8.4.3.1.8.2.9.5.1.3.1.7 0 1l-.2.9c-.1.3-.2 1 .9.6 1.1-.5 6-3.5 8.2-6.1 1.5-1.6 2.3-3.3 2.3-5.3 0-4.7-4.7-8.5-10.4-8.5zM8.3 13.6H6.2c-.3 0-.6-.3-.6-.6V8.8c0-.3.3-.6.6-.6s.6.3.6.6v3.6h1.5c.3 0 .6.3.6.6s-.3.6-.6.6zm2.2-.6c0 .3-.3.6-.6.6s-.6-.3-.6-.6V8.8c0-.3.3-.6.6-.6s.6.3.6.6V13zm5 0c0 .3-.2.5-.4.6h-.2c-.2 0-.4-.1-.5-.2l-2.1-2.9V13c0 .3-.3.6-.6.6s-.6-.3-.6-.6V8.8c0-.3.2-.5.4-.6h.2c.2 0 .4.1.5.3l2.1 2.9V8.8c0-.3.3-.6.6-.6s.6.3.6.6V13zm3.4-2.7c.3 0 .6.3.6.6s-.3.6-.6.6h-1.5v.9h1.5c.3 0 .6.3.6.6s-.3.6-.6.6h-2.1c-.3 0-.6-.3-.6-.6V8.8c0-.3.3-.6.6-.6h2.1c.3 0 .6.3.6.6s-.3.6-.6.6h-1.5v.9h1.5z"/></svg>
+                ส่งรูปเข้า LINE
             </button>
+            <button class="btn-text" id="lineTextBtn">💬 ส่งเลขบัญชีเป็นข้อความทาง LINE</button>
         </div>
     </div>
 
-    <!-- Settings -->
-    <div class="overlay" id="settingsOverlay">
+    <!-- รายการบัญชี -->
+    <div class="overlay" id="listOverlay">
         <div class="sheet">
             <div class="sheet-handle"></div>
             <div class="sheet-header">
-                <h3>ตั้งค่า</h3>
-                <button class="icon-btn" id="closeSettings" aria-label="ปิด">
-                    <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
-                </button>
+                <h3>บัญชีรับเงิน</h3>
+                <button class="icon-btn" data-close aria-label="ปิด"><svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button>
             </div>
             <div class="sheet-body">
-                <div class="field-divider">ข้อมูลผู้รับเงิน</div>
-                <div class="field">
-                    <label for="cfgName">ชื่อ-นามสกุล</label>
-                    <input type="text" id="cfgName" placeholder="นายวนัส ฉัตรชฎานุกูล">
+                <div class="acc-list" id="accList"></div>
+                <button class="btn-add" id="addAccBtn">+ เพิ่มบัญชี</button>
+                <p class="field-hint" style="margin-top:8px">แตะ ☆ เพื่อตั้งบัญชีที่เปิดแอปแล้วแสดงก่อน · ▲▼ สลับลำดับ</p>
+                <div class="backup-box cloud" id="cloudBox">
+                    <b>☁️ เก็บบนคลาวด์ (Supabase)</b>
+                    <form id="cloudOut" class="cloud-form" hidden>
+                        <p>ล็อกอินด้วยบัญชีเดียวกับ PuiHome&amp;Tax — บัญชี, QR, โลโก้ และพื้นหลังจะซิงก์ทุกเครื่อง</p>
+                        <input type="email" id="cloudEmailIn" placeholder="อีเมล" autocomplete="username" required>
+                        <input type="password" id="cloudPass" placeholder="รหัสผ่าน" autocomplete="current-password" required>
+                        <button type="submit" class="btn-save" id="cloudLoginBtn" style="margin-top:4px;height:44px">เข้าสู่ระบบ</button>
+                        <p class="err" id="cloudLoginMsg"></p>
+                    </form>
+                    <div id="cloudIn" hidden>
+                        <p>👤 <span id="cloudEmail"></span><br><span id="cloudStatus"></span></p>
+                        <div class="backup-btns">
+                            <button class="mini-btn" id="cloudSyncBtn" type="button">🔄 ซิงก์ตอนนี้</button>
+                            <button class="mini-btn" id="cloudLogoutBtn" type="button">ออกจากระบบ</button>
+                        </div>
+                    </div>
                 </div>
-                <div class="field-divider">พร้อมเพย์ — เบอร์โทร</div>
-                <div class="field">
-                    <label for="cfgPhone">เบอร์มือถือ</label>
-                    <input type="tel" id="cfgPhone" placeholder="0963599464" inputmode="tel">
-                    <p class="field-hint">10 หลัก ขึ้นต้นด้วย 0</p>
+                <div class="backup-box">
+                    <b>💾 สำรองข้อมูล</b>
+                    <p id="storageInfo"></p>
+                    <div class="backup-btns">
+                        <button class="mini-btn" id="exportBtn">⬇ สำรองข้อมูล</button>
+                        <label class="mini-btn" for="importFile" style="display:flex;align-items:center;justify-content:center">⬆ นำเข้าไฟล์</label>
+                    </div>
+                    <input type="file" id="importFile" accept="application/json,.json" hidden>
                 </div>
-                <div class="field-divider">พร้อมเพย์ — เลขบัตร</div>
-                <div class="field">
-                    <label for="cfgIdcard">เลขบัตรประชาชน</label>
-                    <input type="text" id="cfgIdcard" placeholder="1234567890123" inputmode="numeric" maxlength="13">
-                    <p class="field-hint">13 หลัก ที่ลงทะเบียนพร้อมเพย์แล้ว</p>
-                </div>
-                <button class="btn-save" id="saveSettings">บันทึก</button>
             </div>
         </div>
     </div>
 
-    <!-- Preview บันทึกรูป -->
+    <!-- แก้ไข/เพิ่มบัญชี -->
+    <div class="overlay" id="editOverlay">
+        <div class="sheet">
+            <div class="sheet-handle"></div>
+            <div class="sheet-header">
+                <h3 id="editTitle">เพิ่มบัญชี</h3>
+                <button class="icon-btn" data-close aria-label="ปิด"><svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button>
+            </div>
+            <div class="sheet-body">
+                <div class="seg" id="typeSeg">
+                    <button data-type="phone">📱 พร้อมเพย์<br>เบอร์โทร</button>
+                    <button data-type="idcard">🪪 พร้อมเพย์<br>เลขบัตร</button>
+                    <button data-type="fixed">🏦 QR<br>ธนาคาร</button>
+                </div>
+
+                <div class="field">
+                    <label for="fBank">ธนาคาร</label>
+                    <select id="fBank"></select>
+                </div>
+                <div class="field">
+                    <label>โลโก้ธนาคาร (ไม่บังคับ)</label>
+                    <div class="logo-pick">
+                        <span class="badge" id="logoPreview"></span>
+                        <label class="mini-btn" for="fLogo" style="display:flex;align-items:center">เลือกรูปโลโก้</label>
+                        <button class="mini-btn del" id="logoClear" type="button">ลบโลโก้</button>
+                    </div>
+                    <input type="file" id="fLogo" accept="image/*" hidden>
+                    <p class="field-hint">ใช้รูปโลโก้จากเครื่องคุณเอง (เช่น แคปจากแอปธนาคาร) — ถ้าไม่ใส่จะใช้ตราสีธนาคาร</p>
+                </div>
+                <div class="field">
+                    <label for="fName">ชื่อบัญชี</label>
+                    <input type="text" id="fName" placeholder="นายวนัส ฉัตรชฎานุกูล">
+                </div>
+
+                <div class="field" id="ppField">
+                    <label for="fPpId" id="ppLabel">เบอร์มือถือพร้อมเพย์</label>
+                    <input type="text" id="fPpId" inputmode="numeric">
+                    <p class="field-hint" id="ppHint">10 หลัก ขึ้นต้นด้วย 0</p>
+                </div>
+
+                <div class="field" id="qrField">
+                    <label>รูป QR จากแอปธนาคาร</label>
+                    <label class="upload-box" id="uploadBox" for="fQrFile">
+                        <div id="uploadInner">แตะเพื่อเลือกรูป QR<br><small>เช่น QR รับเงินจาก K PLUS / SCB EASY (ภาพหน้าจอได้)</small></div>
+                    </label>
+                    <input type="file" id="fQrFile" accept="image/*" hidden>
+                </div>
+
+                <div class="field">
+                    <label for="fAccNo">เลขบัญชี (แสดงบนกรอบ)</label>
+                    <input type="text" id="fAccNo" inputmode="numeric" placeholder="123-4-56789-0">
+                    <p class="field-hint" id="accNoHint">ไม่บังคับ — ไว้ให้ผู้โอนเห็นว่าเข้าบัญชีไหน</p>
+                </div>
+
+                <button class="btn-save" id="saveAccBtn">บันทึก</button>
+            </div>
+        </div>
+    </div>
+
     <div class="preview-overlay" id="previewOverlay">
-        <img id="previewImg" alt="QR PromptPay">
+        <img id="previewImg" alt="QR รับเงิน">
         <p class="preview-hint">กดค้างที่รูป → <strong>บันทึกลงรูปภาพ</strong><br>แล้วแชร์ใน LINE ได้เลย</p>
         <button class="preview-close" id="previewClose">ปิด</button>
     </div>
@@ -744,7 +405,7 @@
         <img src="/icon-192.png" alt="">
         <div class="install-banner-text">
             <strong>ติดตั้งแอป พร้อมเพย์</strong>
-            <span id="installHint">เปิดได้จากหน้าจอโฮม</span>
+            <span>เปิดได้จากหน้าจอโฮม</span>
         </div>
         <div class="install-banner-btns">
             <button class="install-go" id="installGo">ติดตั้ง</button>
@@ -752,15 +413,12 @@
         </div>
     </div>
 
-    <!-- iOS install guide -->
     <div class="overlay" id="iosInstallOverlay">
         <div class="sheet">
             <div class="sheet-handle"></div>
             <div class="sheet-header">
                 <h3>เพิ่มที่หน้าจอโฮม</h3>
-                <button class="icon-btn" id="closeIosInstall" aria-label="ปิด">
-                    <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
-                </button>
+                <button class="icon-btn" data-close aria-label="ปิด"><svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button>
             </div>
             <div class="sheet-body">
                 <div class="ios-steps">
@@ -781,495 +439,1428 @@
     </div>
 
     <script>
-        const PP_BLUE = '#00468C';
-        const DEFAULT_CONFIG = {
-            accountName: 'นายวนัส ฉัตรชฎานุกูล',
-            phone: '0963599464',
-            idcard: '1234567890123'
-        };
+    /* ================= ข้อมูลธนาคาร ================= */
+    // ink = สีตัวอักษรเด่นบนพื้นขาว (กรณีสีธนาคารอ่อนเกิน)
+    const BANKS = {
+        PP:    { name: 'พร้อมเพย์',           en: 'PromptPay', short: '฿',    color: '#00468C' },
+        KBANK: { name: 'ธนาคารกสิกรไทย',      en: 'KBank', short: 'K', color: '#138F2D' },
+        SCB:   { name: 'ธนาคารไทยพาณิชย์',     en: 'SCB',       short: 'SCB',  color: '#4E2E7F' },
+        BBL:   { name: 'ธนาคารกรุงเทพ',        en: 'Bangkok Bank', short: 'BBL', color: '#1E4598' },
+        KTB:   { name: 'ธนาคารกรุงไทย',        en: 'Krungthai', short: 'KTB',  color: '#1BA5E1', ink: '#0B7DB0' },
+        BAY:   { name: 'ธนาคารกรุงศรีอยุธยา',   en: 'Krungsri',  short: 'ก',   color: '#FEC43B', ink: '#7A5A00', fg: '#5a4300' },
+        TTB:   { name: 'ธนาคารทหารไทยธนชาต',   en: 'ttb',       short: 'ttb',  color: '#0050F0' },
+        GSB:   { name: 'ธนาคารออมสิน',         en: 'GSB',       short: 'ออม',  color: '#EB198D' },
+        BAAC:  { name: 'ธ.ก.ส.',              en: 'BAAC',      short: 'ธกส',  color: '#4B9B1D' },
+        GHB:   { name: 'ธนาคารอาคารสงเคราะห์',  en: 'GH Bank',   short: 'ธอส',  color: '#F57D23', ink: '#C05A0C' },
+        KKP:   { name: 'ธนาคารเกียรตินาคินภัทร', en: 'KKP',      short: 'KKP',  color: '#635F98' },
+        CIMB:  { name: 'ธนาคารซีไอเอ็มบี ไทย',  en: 'CIMB Thai', short: 'CIMB', color: '#7E2F36' },
+        UOB:   { name: 'ธนาคารยูโอบี',         en: 'UOB',       short: 'UOB',  color: '#0B3979' },
+        LHB:   { name: 'ธนาคารแลนด์ แอนด์ เฮ้าส์', en: 'LH Bank', short: 'LH',  color: '#6D6E71' },
+        TISCO: { name: 'ธนาคารทิสโก้',         en: 'TISCO',     short: 'TISCO', color: '#12549F' }
+    };
+    const bankOf = acc => BANKS[acc.bank] || BANKS.PP;
+    const inkOf = b => b.ink || b.color;
+    const themeOf = acc => { const t = acc.theme; if (!t || OLD_THEMES.includes(t)) return 'carbon'; if (t.startsWith('custom:') && !(state.bgs || []).some(b => 'custom:' + b.id === t)) return 'carbon'; return t; };
 
-        const STORAGE_KEY = 'qr-pui-config';
-        let config = loadConfig();
-        let currentMode = 'phone';
+    /* ================= ธีมกรอบ ================= */
+    const THEME_CATS = [
+        { id: 'men',    name: '💪 ผู้ชาย' },
+        { id: 'women',  name: '🌸 ผู้หญิง' },
+        { id: 'toon',   name: '🧸 การ์ตูน' },
+        { id: 'work',   name: '💼 วัยทำงาน' },
+        { id: 'fest',   name: '🎉 เทศกาล' },
+        { id: 'mine',   name: '🖼 ของฉัน' }
+    ];
+    const THEMES = [
+        { id: 'carbon',  cat: 'men',   name: 'คาร์บอน' },
+        { id: 'steel',   cat: 'men',   name: 'เหล็กขัด' },
+        { id: 'navy',    cat: 'men',   name: 'กรมท่า-ทอง' },
+        { id: 'racing',  cat: 'men',   name: 'เรซซิ่ง' },
+        { id: 'neon',    cat: 'men',   name: 'นีออน' },
+        { id: 'camo',    cat: 'men',   name: 'ลายพราง' },
+        { id: 'leather', cat: 'men',   name: 'หนัง' },
+        { id: 'matte',   cat: 'men',   name: 'ดำด้าน' },
+        { id: 'football',cat: 'men',   name: 'ฟุตบอล', title: '⚽ GOAL! โอนเลย' },
+        { id: 'sakura',  cat: 'women', name: 'ซากุระ' },
+        { id: 'rosegold',cat: 'women', name: 'โรสโกลด์' },
+        { id: 'lavender',cat: 'women', name: 'ลาเวนเดอร์' },
+        { id: 'sky',     cat: 'toon',  name: 'ท้องฟ้า' },
+        { id: 'candy',   cat: 'toon',  name: 'ลูกอม' },
+        { id: 'space',   cat: 'toon',  name: 'อวกาศ' },
+        { id: 'hero',    cat: 'toon',  name: 'ซุเปอร์ฮีโร่', title: 'HERO PAY!' },
+        { id: 'dino',    cat: 'toon',  name: 'ไดโนเสาร์', title: 'ร้าววว~ โอนเงินมา' },
+        { id: 'corporate', cat: 'work', name: 'ออฟฟิศ' },
+        { id: 'marble',  cat: 'work',  name: 'หินอ่อน' },
+        { id: 'kraft',   cat: 'work',  name: 'กระดาษคราฟท์' },
+        { id: 'bank',    cat: 'work',  name: 'สีธนาคาร' },
+        { id: 'newyear', cat: 'fest',  name: 'ปีใหม่', title: '✦ สวัสดีปีใหม่ ✦' },
+        { id: 'cny',     cat: 'fest',  name: 'ตรุษจีน', title: 'ซินเจียยู่อี่ ซินนี้ฮวดไช้' },
+        { id: 'valentine', cat: 'fest', name: 'วาเลนไทน์', title: 'Happy Valentine’s Day' },
+        { id: 'songkran',cat: 'fest',  name: 'สงกรานต์', title: 'สุขสันต์วันสงกรานต์' },
+        { id: 'loykrathong', cat: 'fest', name: 'ลอยกระทง', title: 'สุขสันต์วันลอยกระทง' },
+        { id: 'xmas',    cat: 'fest',  name: 'คริสต์มาส', title: 'Merry Christmas' }
+    ];
+    const OLD_THEMES = ['mint', 'sunset', 'night', 'gold', 'minimal'];
 
-        function loadConfig() {
-            try {
-                const saved = localStorage.getItem(STORAGE_KEY);
-                if (saved) return { ...DEFAULT_CONFIG, ...JSON.parse(saved) };
-            } catch (e) { /* ignore */ }
-            return { ...DEFAULT_CONFIG };
-        }
+    /* ================= state ================= */
+    const STORAGE_KEY = 'qr-pui-v2';
+    const OLD_KEY = 'qr-pui-config';
+    const uid = () => Math.random().toString(36).slice(2, 9);
 
-        function saveConfig() {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(config));
-        }
+    function defaultState() {
+        const acc = { id: uid(), type: 'phone', bank: 'PP', name: 'นายวนัส ฉัตรชฎานุกูล', ppId: '0963599464', accNo: '', theme: 'carbon' };
+        return { accounts: [acc], activeId: acc.id };
+    }
 
-        function showToast(msg) {
-            const t = document.getElementById('toast');
-            t.textContent = msg;
-            t.classList.add('show');
-            setTimeout(() => t.classList.remove('show'), 2500);
-        }
-
-        function tlv(id, value) {
-            return id + String(value.length).padStart(2, '0') + value;
-        }
-
-        function crc16ccitt(data) {
-            let crc = 0xFFFF;
-            for (let i = 0; i < data.length; i++) {
-                crc ^= data.charCodeAt(i) << 8;
-                for (let j = 0; j < 8; j++) {
-                    crc = (crc & 0x8000) ? ((crc << 1) ^ 0x1021) : (crc << 1);
-                    crc &= 0xFFFF;
-                }
+    function loadState() {
+        try {
+            const s = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
+            if (s && Array.isArray(s.accounts)) return s;
+            const old = JSON.parse(localStorage.getItem(OLD_KEY) || 'null');
+            if (old) { // ย้ายข้อมูลจากเวอร์ชันเก่า
+                const accs = [];
+                if (old.phone) accs.push({ id: uid(), type: 'phone', bank: 'PP', name: old.accountName || '', ppId: old.phone, accNo: '', theme: 'carbon' });
+                if (old.idcard && old.idcard !== '1234567890123') accs.push({ id: uid(), type: 'idcard', bank: 'PP', name: old.accountName || '', ppId: old.idcard, accNo: '', theme: 'carbon' });
+                if (accs.length) return { accounts: accs, activeId: accs[0].id };
             }
-            return crc.toString(16).toUpperCase().padStart(4, '0');
+        } catch (e) { /* ignore */ }
+        return defaultState();
+    }
+
+    let state = loadState();
+    if (!state.defaultId || !state.accounts.some(a => a.id === state.defaultId)) state.defaultId = state.accounts[0].id;
+    state.activeId = state.defaultId; // เปิดแอปมาแสดงบัญชีเริ่มต้นก่อน
+    function persistLocal() { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) { showToast('บันทึกในเครื่องไม่สำเร็จ'); } }
+    function saveState() { state.updatedAt = Date.now(); persistLocal(); if (typeof schedulePush === 'function') schedulePush(); }
+    function setActive(id) { state.activeId = id; persistLocal(); } // เปลี่ยนบัญชีที่ดูอยู่ ไม่นับเป็นการแก้ไข
+    function activeAcc() { return state.accounts.find(a => a.id === state.activeId) || state.accounts[0]; }
+
+    /* ================= utils ================= */
+    function showToast(msg) {
+        const t = document.getElementById('toast');
+        t.textContent = msg; t.classList.add('show');
+        clearTimeout(showToast._t); showToast._t = setTimeout(() => t.classList.remove('show'), 2500);
+    }
+    const digits = s => (s || '').replace(/\D/g, '');
+
+    /* ================= PromptPay EMV ================= */
+    function tlv(id, value) { return id + String(value.length).padStart(2, '0') + value; }
+    function crc16ccitt(data) {
+        let crc = 0xFFFF;
+        for (let i = 0; i < data.length; i++) {
+            crc ^= data.charCodeAt(i) << 8;
+            for (let j = 0; j < 8; j++) { crc = (crc & 0x8000) ? ((crc << 1) ^ 0x1021) : (crc << 1); crc &= 0xFFFF; }
         }
-
-        function formatPhoneForPromptPay(phone) {
-            let d = phone.replace(/\D/g, '');
-            if (d.startsWith('0')) d = '66' + d.slice(1);
-            else if (!d.startsWith('66')) d = '66' + d;
-            return d;
+        return crc.toString(16).toUpperCase().padStart(4, '0');
+    }
+    function formatPhoneForPromptPay(phone) {
+        let d = digits(phone);
+        if (d.startsWith('0')) d = '66' + d.slice(1); else if (!d.startsWith('66')) d = '66' + d;
+        return d.padStart(13, '0');
+    }
+    function promptPayPayload(type, rawId, amount) {
+        const idValue = type === 'phone' ? formatPhoneForPromptPay(rawId) : digits(rawId);
+        const merchant = tlv('00', 'A000000677010111') + tlv(type === 'phone' ? '01' : '02', idValue);
+        const hasAmount = amount && parseFloat(amount) > 0;
+        let p = tlv('00', '01') + (hasAmount ? '010212' : '010211') + tlv('29', merchant) + tlv('53', '764');
+        if (hasAmount) p += tlv('54', parseFloat(amount).toFixed(2));
+        p += tlv('58', 'TH') + '6304';
+        return p + crc16ccitt(p);
+    }
+    // อ่าน TLV ชั้นบนสุดของ EMV (ใช้ดึงชื่อร้าน tag 59 จาก QR ธนาคาร)
+    function parseEmv(str) {
+        const out = {}; let i = 0;
+        while (i + 4 <= str.length) {
+            const tag = str.substr(i, 2), len = parseInt(str.substr(i + 2, 2), 10);
+            if (isNaN(len)) break;
+            out[tag] = str.substr(i + 4, len); i += 4 + len;
         }
+        return out;
+    }
+    function emvCrcOk(str) {
+        return str.length > 8 && str.slice(-8, -4) === '6304' && crc16ccitt(str.slice(0, -4)) === str.slice(-4).toUpperCase();
+    }
 
-        function generatePayload(mode, rawId, amount) {
-            const idValue = mode === 'phone' ? formatPhoneForPromptPay(rawId) : rawId.replace(/\D/g, '');
-            const idTag = mode === 'phone' ? '01' : '02';
-            let merchant = tlv('00', 'A000000677010111');
-            merchant += idTag + String(idValue.length).padStart(2, '0') + idValue;
-            const hasAmount = amount && parseFloat(amount) > 0;
-            let p = tlv('00', '01');
-            p += hasAmount ? '010212' : '010211';
-            p += tlv('29', merchant);
-            p += tlv('53', '764');
-            if (hasAmount) p += tlv('54', parseFloat(amount).toFixed(2));
-            p += tlv('58', 'TH');
-            p += '6304';
-            p += crc16ccitt(p);
-            return p;
-        }
+    function payloadFor(acc, amount) {
+        if (acc.type === 'fixed') return acc.qr || '';
+        return promptPayPayload(acc.type, acc.ppId, amount);
+    }
 
-        function fmtPhone(p) {
-            const d = p.replace(/\D/g, '');
-            return d.length === 10 ? d.replace(/(\d{3})(\d{3})(\d{4})/, '$1-$2-$3') : p;
-        }
+    /* ================= format ================= */
+    function fmtPhone(p) { const d = digits(p); return d.length === 10 ? d.replace(/(\d{3})(\d{3})(\d{4})/, '$1-$2-$3') : p; }
+    function maskId(id) { const d = digits(id); return d.length === 13 ? d[0] + '-XXXX-XXXXX-' + d.slice(10, 12) + '-' + d[12] : id; }
+    function fmtAccNo(n) {
+        const d = digits(n);
+        if (d.length === 10) return d.replace(/(\d{3})(\d)(\d{5})(\d)/, '$1-$2-$3-$4');
+        if (d.length === 12) return d.replace(/(\d{3})(\d{3})(\d{6})/, '$1-$2-$3');
+        return n || '';
+    }
+    function fmtAmount(val) {
+        const n = parseFloat(val);
+        return (!n || n <= 0) ? null : n.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+    function detailLines(acc) {
+        const lines = [];
+        if (acc.type === 'phone') lines.push('พร้อมเพย์ ' + fmtPhone(acc.ppId));
+        else if (acc.type === 'idcard') lines.push('พร้อมเพย์ ' + maskId(acc.ppId));
+        if (acc.accNo) lines.push('เลขบัญชี ' + fmtAccNo(acc.accNo));
+        return lines;
+    }
 
-        function maskId(id) {
-            const d = id.replace(/\D/g, '');
-            return d.length === 13 ? d.slice(0,1)+'-XXXX-XXXXX-'+d.slice(10,12)+'-'+d.slice(12) : id;
-        }
-
-        function fmtAmount(val) {
-            const n = parseFloat(val);
-            return (!n || n <= 0) ? null : n.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-        }
-
-        function calcQrSize() {
-            const vv = window.visualViewport;
-            const vh = vv ? vv.height : window.innerHeight;
-            const vw = vv ? vv.width : window.innerWidth;
-
-            const QR_FRAME = 28;   /* padding ในกรอบ QR 14px × 2 */
-            const SLIP_PAD = 36;   /* padding slip ซ้ายขวา 18px × 2 */
-            const APP_PAD = 20;
-
-            const gap = 5 * 3;
-            const chrome =
-                document.querySelector('.topbar').offsetHeight +
-                document.querySelector('.controls').offsetHeight +
-                document.querySelector('.actions').offsetHeight +
-                document.querySelector('.slip-info').offsetHeight +
-                document.querySelector('.thai-bar').offsetHeight +
-                gap + QR_FRAME;
-
-            const banner = document.getElementById('installBanner').classList.contains('show')
-                ? document.getElementById('installBanner').offsetHeight + 8 : 0;
-
-            const byHeight = vh - chrome - banner - APP_PAD;
-            const byWidth = vw - SLIP_PAD - QR_FRAME - APP_PAD;
-
-            return Math.floor(Math.max(100, Math.min(byHeight, byWidth)));
-        }
-
-        function render() {
-            const container = document.getElementById('promptpayQr');
-            const rawId = currentMode === 'phone' ? config.phone : config.idcard;
-            const amountVal = document.getElementById('amountInput').value;
-            const formatted = fmtAmount(amountVal);
-
-            document.getElementById('displayName').textContent = config.accountName || '-';
-            document.getElementById('displayDetail').textContent =
-                'พร้อมเพย์ ID: ' + (currentMode === 'phone' ? fmtPhone(rawId) : maskId(rawId));
-
-            const amtEl = document.getElementById('displayAmount');
-            if (formatted) {
-                amtEl.textContent = '฿ ' + formatted;
-                amtEl.classList.add('show');
-            } else {
-                amtEl.classList.remove('show');
-            }
-
-            const qrSize = calcQrSize();
-            document.documentElement.style.setProperty('--qr-size', qrSize + 'px');
-
-            container.innerHTML = '';
-            if (typeof QRCode !== 'undefined') {
-                new QRCode(container, {
-                    text: generatePayload(currentMode, rawId, amountVal),
-                    width: qrSize,
-                    height: qrSize,
-                    colorDark: '#000000',
-                    colorLight: '#ffffff',
-                    correctLevel: QRCode.CorrectLevel.M
-                });
-                const table = container.querySelector('table');
-                if (table) table.remove();
-            }
-        }
-
-        function getQrElement() {
-            const c = document.getElementById('promptpayQr');
-            return c.querySelector('img') || c.querySelector('canvas');
-        }
-
-        function buildQrOffscreen(size) {
-            return new Promise((resolve, reject) => {
-                const wrap = document.createElement('div');
-                wrap.style.cssText = 'position:fixed;left:-9999px;top:0;width:' + size + 'px;height:' + size + 'px';
-                document.body.appendChild(wrap);
-
-                const rawId = currentMode === 'phone' ? config.phone : config.idcard;
-                const amountVal = document.getElementById('amountInput').value;
-
-                try {
-                    new QRCode(wrap, {
-                        text: generatePayload(currentMode, rawId, amountVal),
-                        width: size,
-                        height: size,
-                        colorDark: '#000000',
-                        colorLight: '#ffffff',
-                        correctLevel: QRCode.CorrectLevel.M
-                    });
-                } catch (err) {
-                    document.body.removeChild(wrap);
-                    reject(err);
-                    return;
-                }
-
-                const table = wrap.querySelector('table');
-                if (table) table.remove();
-
-                const done = () => {
-                    const img = wrap.querySelector('img');
-                    const canvas = wrap.querySelector('canvas');
-                    if (img?.src) {
-                        const finish = () => resolve({ el: img, wrap, isCanvas: false });
-                        if (img.complete && img.naturalWidth) finish();
-                        else img.onload = finish;
-                        return true;
-                    }
-                    if (canvas) {
-                        resolve({ el: canvas, wrap, isCanvas: true });
-                        return true;
-                    }
-                    return false;
-                };
-
-                if (!done()) {
-                    setTimeout(() => {
-                        if (!done()) {
-                            document.body.removeChild(wrap);
-                            reject(new Error('QR render failed'));
-                        }
-                    }, 500);
-                }
-            });
-        }
-
-        function drawQrOn(ctx, source, x, y, size) {
-            ctx.drawImage(source, x, y, size, size);
-        }
-
-        function wrapText(ctx, text, maxW) {
-            const words = text.split('');
-            let line = '';
-            const lines = [];
-            for (let i = 0; i < words.length; i++) {
-                const test = line + words[i];
-                if (ctx.measureText(test).width > maxW && line) {
-                    lines.push(line);
-                    line = words[i];
-                } else {
-                    line = test;
-                }
-            }
-            if (line) lines.push(line);
-            return lines;
-        }
-
-        async function exportImage() {
-            const W = 900;
-            const topPad = 56;
-            const bottomPad = 48;
-            const qrInnerPad = 36;
-            const qrGap = 16;
-            const barH = 56;
-            const qrSize = 480;
-
-            const { el, wrap } = await buildQrOffscreen(qrSize);
-
-            const formatted = fmtAmount(document.getElementById('amountInput').value);
-            const infoH = formatted ? 160 : 110;
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-
-            canvas.width = W;
-            canvas.height = topPad + qrInnerPad * 2 + qrSize + qrGap + barH + infoH + bottomPad;
-
-            ctx.fillStyle = '#ffffff';
-            ctx.fillRect(0, 0, W, canvas.height);
-
-            const qrX = (W - qrSize) / 2;
-            const qrY = topPad + qrInnerPad;
-            drawQrOn(ctx, el, qrX, qrY, qrSize);
+    /* ================= QR → canvas ================= */
+    function makeQrCanvas(text, size) {
+        const wrap = document.createElement('div');
+        wrap.style.cssText = 'position:fixed;left:-9999px;top:0';
+        document.body.appendChild(wrap);
+        try {
+            new QRCode(wrap, { text, width: size, height: size, colorDark: '#000000', colorLight: '#ffffff', correctLevel: QRCode.CorrectLevel.Q });
+            return wrap.querySelector('canvas');
+        } finally {
             document.body.removeChild(wrap);
-
-            const barY = qrY + qrSize + qrInnerPad + qrGap;
-            ctx.fillStyle = PP_BLUE;
-            ctx.fillRect(0, barY, W, barH);
-            ctx.fillStyle = '#ffffff';
-            ctx.font = '700 22px Prompt, sans-serif';
-            ctx.textAlign = 'center';
-            ctx.fillText('THAI QR PAYMENT', W / 2, barY + 37);
-
-            const sidePad = 48;
-            let y = barY + barH + 44;
-            ctx.fillStyle = '#1a1a1a';
-            ctx.font = '700 30px Prompt, sans-serif';
-            wrapText(ctx, config.accountName, W - sidePad * 2).forEach(line => {
-                ctx.fillText(line, W / 2, y);
-                y += 36;
-            });
-
-            y += 4;
-            ctx.fillStyle = '#666666';
-            ctx.font = '400 24px Prompt, sans-serif';
-            const idText = currentMode === 'phone' ? fmtPhone(config.phone) : maskId(config.idcard);
-            ctx.fillText('พร้อมเพย์ ID: ' + idText, W / 2, y);
-
-            if (formatted) {
-                y += 52;
-                ctx.fillStyle = PP_BLUE;
-                ctx.font = '700 48px Prompt, sans-serif';
-                ctx.fillText('฿ ' + formatted, W / 2, y);
-            }
-
-            return canvas;
         }
+    }
 
-        function canvasToBlob(canvas) {
-            return new Promise((resolve, reject) => {
-                canvas.toBlob(b => b ? resolve(b) : reject(new Error('blob failed')), 'image/png', 1);
-            });
+    /* ================= วาดกรอบ ================= */
+    function rand(seed) { let s = seed; return () => (s = (s * 16807) % 2147483647) / 2147483647; }
+    function shade(hex, amt) {
+        const n = parseInt(hex.slice(1), 16);
+        const f = c => Math.max(0, Math.min(255, Math.round(c + (amt < 0 ? c * amt : (255 - c) * amt))));
+        return '#' + [f(n >> 16), f((n >> 8) & 255), f(n & 255)].map(x => x.toString(16).padStart(2, '0')).join('');
+    }
+    function rr(ctx, x, y, w, h, r) {
+        ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r);
+        ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath();
+    }
+    function flower(ctx, x, y, r, color) {
+        ctx.fillStyle = color;
+        for (let k = 0; k < 5; k++) {
+            const a = k * Math.PI * 2 / 5;
+            ctx.beginPath(); ctx.ellipse(x + Math.cos(a) * r, y + Math.sin(a) * r, r * .85, r * .6, a, 0, Math.PI * 2); ctx.fill();
         }
+        ctx.fillStyle = '#fff6b0'; ctx.beginPath(); ctx.arc(x, y, r * .45, 0, Math.PI * 2); ctx.fill();
+    }
 
-        function showPreview(blob) {
-            const url = URL.createObjectURL(blob);
-            document.getElementById('previewImg').src = url;
-            document.getElementById('previewOverlay').classList.add('open');
-            document.getElementById('previewClose').onclick = () => {
-                document.getElementById('previewOverlay').classList.remove('open');
-                URL.revokeObjectURL(url);
-            };
-        }
-
-        async function downloadQR() {
-            try {
-                showToast('กำลังสร้างรูป...');
-                const canvas = await exportImage();
-                const blob = await canvasToBlob(canvas);
-
-                if (/iPhone|iPad|iPod/i.test(navigator.userAgent)) {
-                    showPreview(blob);
-                    showToast('กดค้างที่รูปเพื่อบันทึก');
-                    return;
-                }
-
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = 'promptpay-qr.png';
-                document.body.appendChild(a);
-                a.click();
-                a.remove();
-                setTimeout(() => URL.revokeObjectURL(url), 3000);
-                showToast('✓ บันทึกรูปแล้ว');
-            } catch (e) {
-                console.error(e);
-                showToast('บันทึกไม่สำเร็จ ลองอีกครั้ง');
-            }
-        }
-
-        async function shareQR() {
-            try {
-                showToast('กำลังสร้างรูป...');
-                const canvas = await exportImage();
-                const blob = await canvasToBlob(canvas);
-                const file = new File([blob], 'promptpay-qr.png', { type: 'image/png' });
-
-                if (navigator.share && navigator.canShare?.({ files: [file] })) {
-                    await navigator.share({
-                        files: [file],
-                        title: 'QR พร้อมเพย์',
-                        text: config.accountName
-                    });
-                    showToast('✓ แชร์แล้ว');
-                    return;
-                }
-
-                if (/iPhone|iPad|iPod/i.test(navigator.userAgent)) {
-                    showPreview(blob);
-                    showToast('บันทึกรูปแล้วแชร์ LINE ได้');
-                    return;
-                }
-
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = 'promptpay-qr.png';
-                document.body.appendChild(a);
-                a.click();
-                a.remove();
-                setTimeout(() => URL.revokeObjectURL(url), 3000);
-                showToast('บันทึกรูปแล้ว — เปิด LINE แนบได้เลย');
-            } catch (e) {
-                if (e.name !== 'AbortError') {
-                    console.error(e);
-                    showToast('แชร์ไม่สำเร็จ ลองกดบันทึกรูปแทน');
-                }
-            }
-        }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            document.querySelectorAll('.pill').forEach(p => {
-                p.addEventListener('click', () => {
-                    document.querySelectorAll('.pill').forEach(x => x.classList.remove('active'));
-                    p.classList.add('active');
-                    currentMode = p.dataset.mode;
-                    render();
-                });
-            });
-
-            document.getElementById('amountInput').addEventListener('input', () => {
-                clearTimeout(window._t);
-                window._t = setTimeout(render, 300);
-            });
-
-            document.getElementById('settingsBtn').addEventListener('click', () => {
-                document.getElementById('cfgName').value = config.accountName;
-                document.getElementById('cfgPhone').value = config.phone;
-                document.getElementById('cfgIdcard').value = config.idcard;
-                document.getElementById('settingsOverlay').classList.add('open');
-            });
-
-            document.getElementById('closeSettings').addEventListener('click', () =>
-                document.getElementById('settingsOverlay').classList.remove('open'));
-
-            document.getElementById('saveSettings').addEventListener('click', () => {
-                config.accountName = document.getElementById('cfgName').value.trim() || DEFAULT_CONFIG.accountName;
-                config.phone = document.getElementById('cfgPhone').value.trim();
-                config.idcard = document.getElementById('cfgIdcard').value.trim();
-                saveConfig();
-                document.getElementById('settingsOverlay').classList.remove('open');
-                render();
-                showToast('✓ บันทึกแล้ว');
-            });
-
-            document.getElementById('settingsOverlay').addEventListener('click', e => {
-                if (e.target === e.currentTarget) e.currentTarget.classList.remove('open');
-            });
-
-            document.getElementById('downloadBtn').addEventListener('click', downloadQR);
-            document.getElementById('shareBtn').addEventListener('click', shareQR);
-
-            render();
-            const onResize = () => {
-                clearTimeout(window._resizeT);
-                window._resizeT = setTimeout(render, 100);
-            };
-            window.addEventListener('resize', onResize);
-            window.visualViewport?.addEventListener('resize', onResize);
-            window.visualViewport?.addEventListener('scroll', onResize);
-
-            initPWA();
+    function vignette(ctx, W, H, a) {
+        const v = ctx.createRadialGradient(W / 2, H / 2, Math.min(W, H) * .3, W / 2, H / 2, Math.max(W, H) * .75);
+        v.addColorStop(0, 'rgba(0,0,0,0)'); v.addColorStop(1, `rgba(0,0,0,${a})`);
+        ctx.fillStyle = v; ctx.fillRect(0, 0, W, H);
+    }
+    function corners(ctx, W, H, inset, len, color, lw) {
+        ctx.strokeStyle = color; ctx.lineWidth = lw; ctx.lineCap = 'square';
+        [[inset, inset, 1, 1], [W - inset, inset, -1, 1], [inset, H - inset, 1, -1], [W - inset, H - inset, -1, -1]].forEach(([x, y, dx, dy]) => {
+            ctx.beginPath(); ctx.moveTo(x, y + len * dy); ctx.lineTo(x, y); ctx.lineTo(x + len * dx, y); ctx.stroke();
         });
+    }
+    function rivet(ctx, x, y, r) {
+        const g = ctx.createRadialGradient(x - r * .35, y - r * .35, r * .1, x, y, r);
+        g.addColorStop(0, '#F4F6F8'); g.addColorStop(.6, '#8A949F'); g.addColorStop(1, '#3E464F');
+        ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
+    }
 
-        function isStandalone() {
-            return window.matchMedia('(display-mode: standalone)').matches
-                || window.navigator.standalone === true;
+    /* ---------- รูปทรงตกแต่ง ---------- */
+    function heart(ctx, x, y, s, color) {
+        ctx.fillStyle = color; ctx.beginPath(); ctx.moveTo(x, y + s * .3);
+        ctx.bezierCurveTo(x, y, x - s * .5, y, x - s * .5, y + s * .3);
+        ctx.bezierCurveTo(x - s * .5, y + s * .6, x, y + s * .8, x, y + s);
+        ctx.bezierCurveTo(x, y + s * .8, x + s * .5, y + s * .6, x + s * .5, y + s * .3);
+        ctx.bezierCurveTo(x + s * .5, y, x, y, x, y + s * .3); ctx.fill();
+    }
+    function star(ctx, x, y, r, color, n = 5, inner = .45) {
+        ctx.fillStyle = color; ctx.beginPath();
+        for (let i = 0; i < n * 2; i++) { const a = i * Math.PI / n - Math.PI / 2, rr2 = i % 2 ? r * inner : r; ctx.lineTo(x + Math.cos(a) * rr2, y + Math.sin(a) * rr2); }
+        ctx.closePath(); ctx.fill();
+    }
+    function cloud(ctx, x, y, s, color) {
+        ctx.fillStyle = color; ctx.beginPath();
+        [[0, 0, .5], [.45, -.2, .6], [.95, 0, .5], [.45, .15, .5]].forEach(([dx, dy, r]) => { ctx.moveTo(x + dx * s + r * s, y + dy * s); ctx.arc(x + dx * s, y + dy * s, r * s, 0, Math.PI * 2); });
+        ctx.fill();
+    }
+    function burst(ctx, x, y, r, color, R) {
+        ctx.strokeStyle = color; ctx.lineWidth = Math.max(1, r * .04); ctx.lineCap = 'round';
+        for (let i = 0; i < 18; i++) {
+            const a = i * Math.PI / 9 + R() * .1, r1 = r * .25, r2 = r * (.8 + R() * .2);
+            ctx.beginPath(); ctx.moveTo(x + Math.cos(a) * r1, y + Math.sin(a) * r1); ctx.lineTo(x + Math.cos(a) * r2, y + Math.sin(a) * r2); ctx.stroke();
+            ctx.fillStyle = color; ctx.beginPath(); ctx.arc(x + Math.cos(a) * r2, y + Math.sin(a) * r2, r * .05, 0, Math.PI * 2); ctx.fill();
+        }
+    }
+    function lantern(ctx, x, y, s) {
+        ctx.strokeStyle = '#F7C948'; ctx.lineWidth = s * .04; ctx.beginPath(); ctx.moveTo(x, y - s * .9); ctx.lineTo(x, y - s * .5); ctx.stroke();
+        const g = ctx.createRadialGradient(x - s * .15, y - s * .1, s * .05, x, y, s * .6);
+        g.addColorStop(0, '#FF6B5B'); g.addColorStop(1, '#B3121B');
+        ctx.fillStyle = g; ctx.beginPath(); ctx.ellipse(x, y, s * .55, s * .45, 0, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = '#F7C948'; ctx.fillRect(x - s * .25, y - s * .52, s * .5, s * .1); ctx.fillRect(x - s * .25, y + s * .42, s * .5, s * .1);
+        ctx.strokeStyle = 'rgba(247,201,72,.6)'; ctx.lineWidth = s * .025;
+        [-.25, 0, .25].forEach(d => { ctx.beginPath(); ctx.ellipse(x, y, s * Math.abs(d) * 2 + .01, s * .45, 0, 0, Math.PI * 2); ctx.stroke(); });
+        ctx.strokeStyle = '#F7C948'; ctx.lineWidth = s * .03;
+        for (let i = -2; i <= 2; i++) { ctx.beginPath(); ctx.moveTo(x + i * s * .06, y + s * .52); ctx.lineTo(x + i * s * .06, y + s * .85); ctx.stroke(); }
+    }
+    function drop(ctx, x, y, s, color) {
+        ctx.fillStyle = color; ctx.beginPath(); ctx.moveTo(x, y - s);
+        ctx.bezierCurveTo(x + s * .7, y - s * .1, x + s * .6, y + s * .6, x, y + s * .6);
+        ctx.bezierCurveTo(x - s * .6, y + s * .6, x - s * .7, y - s * .1, x, y - s); ctx.fill();
+    }
+    function planet(ctx, x, y, r, c1, c2) {
+        const g = ctx.createLinearGradient(x - r, y - r, x + r, y + r); g.addColorStop(0, c1); g.addColorStop(1, c2);
+        ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
+        ctx.strokeStyle = 'rgba(255,255,255,.7)'; ctx.lineWidth = r * .12; ctx.beginPath(); ctx.ellipse(x, y, r * 1.6, r * .45, -.35, 0, Math.PI * 2); ctx.stroke();
+    }
+    function krathong(ctx, x, y, s) {
+        ctx.fillStyle = '#2E7D32'; ctx.beginPath(); ctx.ellipse(x, y, s, s * .3, 0, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = '#F48FB1';
+        for (let i = 0; i < 7; i++) { const a = Math.PI + i * Math.PI / 6; ctx.beginPath(); ctx.ellipse(x + Math.cos(a) * s * .65, y - s * .15 + Math.sin(a) * s * .25, s * .2, s * .32, a + Math.PI / 2, 0, Math.PI * 2); ctx.fill(); }
+        ctx.save(); ctx.shadowColor = '#FFD54F'; ctx.shadowBlur = s * .8;
+        ctx.fillStyle = '#FFE082'; drop(ctx, x, y - s * .7, s * .18, '#FFE082'); ctx.restore();
+        ctx.fillStyle = '#FFF8E1'; ctx.fillRect(x - s * .03, y - s * .62, s * .06, s * .35);
+    }
+
+    function soccerBall(ctx, x, y, r) {
+        ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
+        ctx.strokeStyle = '#222'; ctx.lineWidth = r * .06; ctx.stroke();
+        ctx.save(); ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.clip();
+        const pent = (px, py, s) => { ctx.fillStyle = '#222'; ctx.beginPath(); for (let i = 0; i < 5; i++) { const a = -Math.PI / 2 + i * 2 * Math.PI / 5; ctx.lineTo(px + Math.cos(a) * s, py + Math.sin(a) * s); } ctx.fill(); };
+        pent(x, y, r * .38);
+        for (let i = 0; i < 5; i++) { const a = -Math.PI / 2 + i * 2 * Math.PI / 5 + Math.PI / 5; pent(x + Math.cos(a) * r * .95, y + Math.sin(a) * r * .95, r * .3); }
+        ctx.restore();
+    }
+    function comicBurst(ctx, x, y, r, text, color, R) {
+        ctx.beginPath();
+        for (let i = 0; i < 28; i++) { const a = i * Math.PI / 14, rr2 = i % 2 ? r * (.62 + R() * .1) : r; ctx.lineTo(x + Math.cos(a) * rr2, y + Math.sin(a) * rr2 * .8); }
+        ctx.closePath(); ctx.fillStyle = color; ctx.fill(); ctx.strokeStyle = '#111'; ctx.lineWidth = r * .07; ctx.stroke();
+        ctx.save(); ctx.translate(x, y); ctx.rotate(-.18);
+        ctx.font = `900 ${r * .48}px Prompt, Impact, sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.lineWidth = r * .1; ctx.strokeStyle = '#111'; ctx.strokeText(text, 0, 0); ctx.fillStyle = '#FFF'; ctx.fillText(text, 0, 0);
+        ctx.restore(); ctx.textBaseline = 'alphabetic';
+    }
+    function bolt(ctx, x, y, s) {
+        ctx.fillStyle = '#FFFFFF'; ctx.strokeStyle = '#111'; ctx.lineWidth = s * .08;
+        ctx.beginPath(); ctx.moveTo(x + s * .2, y - s * .6); ctx.lineTo(x - s * .3, y + s * .1); ctx.lineTo(x, y + s * .1);
+        ctx.lineTo(x - s * .2, y + s * .6); ctx.lineTo(x + s * .35, y - s * .15); ctx.lineTo(x + s * .05, y - s * .15); ctx.closePath(); ctx.fill(); ctx.stroke();
+    }
+    function palm(ctx, x, y, L, ang) {
+        ctx.strokeStyle = '#3E7C3A'; ctx.fillStyle = '#4C9A45'; ctx.lineWidth = L * .03;
+        for (let i = -2; i <= 2; i++) {
+            const a = ang + i * .35, ex = x + Math.cos(a) * L, ey = y + Math.sin(a) * L;
+            ctx.beginPath(); ctx.moveTo(x, y); ctx.quadraticCurveTo(x + Math.cos(a - .3) * L * .6, y + Math.sin(a - .3) * L * .6, ex, ey);
+            ctx.quadraticCurveTo(x + Math.cos(a + .3) * L * .6, y + Math.sin(a + .3) * L * .6, x, y); ctx.fill();
+        }
+    }
+    function footprint(ctx, x, y, s, color, rot) {
+        ctx.save(); ctx.translate(x, y); ctx.rotate(rot); ctx.fillStyle = color;
+        ctx.beginPath(); ctx.ellipse(0, s * .3, s * .5, s * .6, 0, 0, Math.PI * 2); ctx.fill();
+        [-.5, 0, .5].forEach(dx => { ctx.beginPath(); ctx.ellipse(dx * s, -s * .55, s * .18, s * .35, dx * .6, 0, Math.PI * 2); ctx.fill(); });
+        ctx.restore();
+    }
+    // ไดโนเสาร์การ์ตูน (ออกแบบเอง) ยืนบนพื้น; flip = หันซ้าย
+    function dinoShape(ctx, x, y, s, color, flip) {
+        ctx.save(); ctx.translate(x, y); ctx.scale(flip ? -s : s, s); ctx.fillStyle = color;
+        // หาง + ตัว
+        ctx.beginPath(); ctx.moveTo(-120, -60); ctx.quadraticCurveTo(-60, -40, -40, -70);
+        ctx.quadraticCurveTo(0, -130, 50, -90); ctx.quadraticCurveTo(70, -60, 40, -30); ctx.quadraticCurveTo(-20, -20, -120, -60); ctx.fill();
+        // คอ + หัว
+        ctx.beginPath(); ctx.moveTo(20, -100); ctx.quadraticCurveTo(40, -170, 70, -175);
+        ctx.quadraticCurveTo(110, -180, 112, -158); ctx.quadraticCurveTo(110, -142, 78, -142); ctx.quadraticCurveTo(62, -110, 50, -80); ctx.fill();
+        // ขา
+        ctx.fillRect(-20, -45, 20, 45); ctx.fillRect(22, -45, 20, 45);
+        // หนาม
+        ctx.fillStyle = 'rgba(255,255,255,.55)';
+        [[-30, -88], [-5, -108], [22, -112]].forEach(([px, py]) => { ctx.beginPath(); ctx.moveTo(px - 10, py + 6); ctx.lineTo(px, py - 14); ctx.lineTo(px + 10, py + 6); ctx.fill(); });
+        // ตา + ยิ้ม
+        ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(88, -163, 7, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = '#111'; ctx.beginPath(); ctx.arc(90, -163, 3.5, 0, Math.PI * 2); ctx.fill();
+        ctx.strokeStyle = '#111'; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.arc(98, -152, 7, .2, Math.PI * .8); ctx.stroke();
+        // แก้มชมพู
+        ctx.fillStyle = 'rgba(255,150,170,.7)'; ctx.beginPath(); ctx.arc(78, -150, 5, 0, Math.PI * 2); ctx.fill();
+        ctx.restore();
+    }
+
+    // ธีมเพิ่มเติม: (ctx, W, H, k, R, bank) → สีตัวอักษรท้ายกรอบ
+    const FRAMES = {
+        /* กีฬา / ฮีโร่ / ไดโนเสาร์ */
+        football(ctx, W, H, k, R) {
+            const sw = 90 * k;
+            for (let y = 0; y < H; y += sw) { ctx.fillStyle = (y / sw | 0) % 2 ? '#2E8B3A' : '#36A045'; ctx.fillRect(0, y, W, sw); }
+            ctx.strokeStyle = 'rgba(255,255,255,.85)'; ctx.lineWidth = 6 * k;
+            const m = 26 * k;
+            ctx.strokeRect(m, m, W - m * 2, H - m * 2);
+            ctx.beginPath(); ctx.moveTo(m, H / 2); ctx.lineTo(W - m, H / 2); ctx.stroke();
+            ctx.beginPath(); ctx.arc(W / 2, H / 2, 150 * k, 0, Math.PI * 2); ctx.stroke();
+            [m, H - m].forEach((y, i) => {
+                const d = i ? -1 : 1;
+                ctx.strokeRect(W / 2 - 260 * k, i ? y - 170 * k : y, 520 * k, 170 * k);
+                ctx.beginPath(); ctx.arc(W / 2, y + d * 170 * k, 80 * k, i ? Math.PI : 0, i ? 0 : Math.PI); ctx.stroke();
+            });
+            [[m, m, 0], [W - m, m, Math.PI / 2], [W - m, H - m, Math.PI], [m, H - m, -Math.PI / 2]].forEach(([x, y, a]) => {
+                ctx.beginPath(); ctx.arc(x, y, 26 * k, a, a + Math.PI / 2); ctx.stroke();
+            });
+            soccerBall(ctx, 70 * k, 120 * k, 44 * k); soccerBall(ctx, W - 70 * k, H - 120 * k, 44 * k);
+            return '#ffffff';
+        },
+        hero(ctx, W, H, k, R) {
+            ctx.fillStyle = '#FFD60A'; ctx.fillRect(0, 0, W, H);
+            const cx = W / 2, cy = H * .45;
+            for (let i = 0; i < 24; i++) {
+                if (i % 2) continue;
+                const a1 = i * Math.PI / 12, a2 = (i + 1) * Math.PI / 12, L = Math.hypot(W, H);
+                ctx.fillStyle = '#FF9F1C'; ctx.beginPath(); ctx.moveTo(cx, cy);
+                ctx.lineTo(cx + Math.cos(a1) * L, cy + Math.sin(a1) * L); ctx.lineTo(cx + Math.cos(a2) * L, cy + Math.sin(a2) * L); ctx.fill();
+            }
+            ctx.fillStyle = 'rgba(214,40,40,.35)';
+            for (let y = 0; y < H; y += 22 * k) for (let x = (y / (22 * k) % 2) * 11 * k; x < W; x += 22 * k) {
+                const r = 5 * k * (1 - Math.min(1, Math.hypot(x - cx, y - cy) / (H * .7))) + 1 * k;
+                ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
+            }
+            comicBurst(ctx, 120 * k, 120 * k, 95 * k, 'POW!', '#E63946', R);
+            comicBurst(ctx, W - 120 * k, H - 130 * k, 90 * k, 'ZAP!', '#3A86FF', R);
+            bolt(ctx, W - 110 * k, 90 * k, 70 * k); bolt(ctx, 90 * k, H - 150 * k, 60 * k);
+            ctx.strokeStyle = '#111'; ctx.lineWidth = 8 * k; ctx.strokeRect(10 * k, 10 * k, W - 20 * k, H - 20 * k);
+            return '#111111';
+        },
+        dino(ctx, W, H, k, R) {
+            const g = ctx.createLinearGradient(0, 0, 0, H); g.addColorStop(0, '#FFD6A5'); g.addColorStop(.5, '#BDE0A8'); g.addColorStop(1, '#5E9C4B');
+            ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+            // ภูเขาไฟ
+            ctx.fillStyle = '#7A5C49'; ctx.beginPath(); ctx.moveTo(W - 320 * k, 260 * k); ctx.lineTo(W - 200 * k, 70 * k); ctx.lineTo(W - 140 * k, 70 * k); ctx.lineTo(W - 20 * k, 260 * k); ctx.fill();
+            ctx.fillStyle = '#FF6B35'; ctx.beginPath(); ctx.moveTo(W - 200 * k, 70 * k); ctx.lineTo(W - 140 * k, 70 * k); ctx.lineTo(W - 155 * k, 110 * k); ctx.lineTo(W - 185 * k, 100 * k); ctx.fill();
+            for (let i = 0; i < 4; i++) { ctx.fillStyle = `rgba(120,110,110,${.35 - i * .06})`; ctx.beginPath(); ctx.arc(W - 170 * k + i * 22 * k, 50 * k - i * 26 * k, (18 + i * 6) * k, 0, Math.PI * 2); ctx.fill(); }
+            // ใบปาล์ม
+            palm(ctx, 40 * k, H - 40 * k, 230 * k, -1.2); palm(ctx, W - 40 * k, H * .55, 200 * k, -2.2);
+            // รอยเท้า
+            for (let i = 0; i < 10; i++) footprint(ctx, R() * W, R() * H, 18 * k, 'rgba(70,110,50,.25)', R() * 6);
+            dinoShape(ctx, 150 * k, H - 24 * k, 1.4 * k, '#2A9D8F', false);
+            dinoShape(ctx, W - 160 * k, H - 24 * k, 1.15 * k, '#E76F51', true);
+            return '#1F4D2B';
+        },
+        /* ผู้หญิง */
+        sakura(ctx, W, H, k, R) {
+            const g = ctx.createLinearGradient(0, 0, W, H); g.addColorStop(0, '#FFE3EC'); g.addColorStop(1, '#FFC9DA');
+            ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+            for (let i = 0; i < 28; i++) { ctx.globalAlpha = .4 + R() * .5; flower(ctx, R() * W, R() * H, (10 + R() * 18) * k, R() > .5 ? '#FF9EBB' : '#FFFFFF'); }
+            ctx.globalAlpha = 1; return '#B03A64';
+        },
+        rosegold(ctx, W, H, k, R) {
+            const g = ctx.createLinearGradient(0, 0, W, H); g.addColorStop(0, '#F7D9CF'); g.addColorStop(.5, '#E8B4A6'); g.addColorStop(1, '#C98D7E');
+            ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+            for (let i = 0; i < 90; i++) { ctx.fillStyle = `rgba(255,255,255,${.2 + R() * .6})`; star(ctx, R() * W, R() * H, (3 + R() * 7) * k, ctx.fillStyle, 4, .3); }
+            ctx.strokeStyle = 'rgba(255,255,255,.8)'; ctx.lineWidth = 3 * k; rr(ctx, 24 * k, 24 * k, W - 48 * k, H - 48 * k, 34 * k); ctx.stroke();
+            return '#7A3E33';
+        },
+        lavender(ctx, W, H, k, R) {
+            const g = ctx.createLinearGradient(0, 0, 0, H); g.addColorStop(0, '#EDE4FF'); g.addColorStop(1, '#CDB8F5');
+            ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+            for (let i = 0; i < 22; i++) heart(ctx, R() * W, R() * H, (16 + R() * 26) * k, `rgba(${R() > .5 ? '255,255,255' : '160,120,230'},${.35 + R() * .4})`);
+            return '#5B3E9E';
+        },
+        /* การ์ตูน */
+        sky(ctx, W, H, k, R) {
+            const g = ctx.createLinearGradient(0, 0, 0, H); g.addColorStop(0, '#7FD3FF'); g.addColorStop(1, '#D8F3FF');
+            ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+            ctx.fillStyle = '#FFD93D'; ctx.beginPath(); ctx.arc(W - 110 * k, 80 * k, 56 * k, 0, Math.PI * 2); ctx.fill();
+            ctx.strokeStyle = '#FFD93D'; ctx.lineWidth = 7 * k; ctx.lineCap = 'round';
+            for (let i = 0; i < 10; i++) { const a = i * Math.PI / 5; ctx.beginPath(); ctx.moveTo(W - 110 * k + Math.cos(a) * 72 * k, 80 * k + Math.sin(a) * 72 * k); ctx.lineTo(W - 110 * k + Math.cos(a) * 92 * k, 80 * k + Math.sin(a) * 92 * k); ctx.stroke(); }
+            for (let i = 0; i < 9; i++) cloud(ctx, R() * W, R() * H, (50 + R() * 50) * k, 'rgba(255,255,255,.92)');
+            ctx.fillStyle = '#7ED957'; ctx.beginPath(); ctx.moveTo(0, H);
+            for (let x = 0; x <= W; x += 10) ctx.lineTo(x, H - 50 * k - Math.sin(x / (W / 3)) * 26 * k); ctx.lineTo(W, H); ctx.fill();
+            return '#1D6A96';
+        },
+        candy(ctx, W, H, k, R) {
+            ctx.fillStyle = '#FFF4D6'; ctx.fillRect(0, 0, W, H);
+            const cols = ['#FF7AA2', '#5FD3F3', '#FFC93C', '#8BE38B', '#B892FF'];
+            const s = 70 * k;
+            for (let y = 0; y < H + s; y += s) for (let x = ((y / s) % 2) * s / 2; x < W + s; x += s) {
+                ctx.fillStyle = cols[(R() * 5) | 0]; ctx.beginPath(); ctx.arc(x, y, 14 * k, 0, Math.PI * 2); ctx.fill();
+            }
+            ctx.strokeStyle = '#FF7AA2'; ctx.lineWidth = 10 * k; ctx.setLineDash([26 * k, 18 * k]);
+            rr(ctx, 18 * k, 18 * k, W - 36 * k, H - 36 * k, 36 * k); ctx.stroke(); ctx.setLineDash([]);
+            return '#D9467A';
+        },
+        space(ctx, W, H, k, R) {
+            const g = ctx.createLinearGradient(0, 0, W, H); g.addColorStop(0, '#1B1464'); g.addColorStop(1, '#3A0CA3');
+            ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+            for (let i = 0; i < 120; i++) { ctx.fillStyle = `rgba(255,255,255,${.4 + R() * .6})`; ctx.beginPath(); ctx.arc(R() * W, R() * H, (R() * 2.5 + .6) * k, 0, Math.PI * 2); ctx.fill(); }
+            for (let i = 0; i < 10; i++) star(ctx, R() * W, R() * H, (10 + R() * 12) * k, '#FFE66D');
+            planet(ctx, 120 * k, 120 * k, 50 * k, '#FF9F1C', '#FF4D6D');
+            planet(ctx, W - 120 * k, H - 160 * k, 64 * k, '#4CC9F0', '#4361EE');
+            return '#FFE66D';
+        },
+        /* วัยทำงาน */
+        corporate(ctx, W, H, k) {
+            ctx.fillStyle = '#F4F6F9'; ctx.fillRect(0, 0, W, H);
+            ctx.fillStyle = '#1F3A5F'; ctx.fillRect(0, 0, W, 14 * k);
+            ctx.fillStyle = '#3D7BD9'; ctx.fillRect(0, 14 * k, W * .35, 6 * k);
+            ctx.strokeStyle = 'rgba(31,58,95,.06)'; ctx.lineWidth = 1 * k;
+            for (let x = 0; x < W; x += 30 * k) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke(); }
+            for (let y = 0; y < H; y += 30 * k) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke(); }
+            return '#1F3A5F';
+        },
+        marble(ctx, W, H, k, R) {
+            ctx.fillStyle = '#F5F3EF'; ctx.fillRect(0, 0, W, H);
+            for (let i = 0; i < 14; i++) {
+                ctx.strokeStyle = `rgba(${R() > .7 ? '190,160,100' : '120,120,130'},${.12 + R() * .25})`; ctx.lineWidth = (1 + R() * 3) * k;
+                let x = R() * W, y = 0; ctx.beginPath(); ctx.moveTo(x, y);
+                while (y < H) { x += (R() - .5) * 80 * k; y += 30 * k; ctx.lineTo(x, y); }
+                ctx.stroke();
+            }
+            ctx.strokeStyle = '#C9A96E'; ctx.lineWidth = 3 * k; rr(ctx, 22 * k, 22 * k, W - 44 * k, H - 44 * k, 26 * k); ctx.stroke();
+            return '#6E5B3A';
+        },
+        kraft(ctx, W, H, k, R) {
+            ctx.fillStyle = '#C8A574'; ctx.fillRect(0, 0, W, H);
+            for (let i = 0; i < 7000 * k * k; i++) { ctx.fillStyle = `rgba(${R() > .5 ? '90,60,30' : '255,240,210'},${R() * .12})`; ctx.fillRect(R() * W, R() * H, (1 + R() * 3) * k, (1 + R() * 3) * k); }
+            ctx.fillStyle = 'rgba(255,255,255,.55)'; ctx.save(); ctx.translate(W / 2, 30 * k); ctx.rotate(-.04); ctx.fillRect(-90 * k, -16 * k, 180 * k, 40 * k); ctx.restore();
+            return '#4A3218';
+        },
+        /* เทศกาล */
+        newyear(ctx, W, H, k, R) {
+            const g = ctx.createLinearGradient(0, 0, 0, H); g.addColorStop(0, '#0B0B2B'); g.addColorStop(1, '#2B124C');
+            ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+            const cols = ['#FFD166', '#EF476F', '#06D6A0', '#4CC9F0', '#F8F9FA'];
+            for (let i = 0; i < 9; i++) burst(ctx, R() * W, R() * H, (60 + R() * 80) * k, cols[i % 5], R);
+            for (let i = 0; i < 80; i++) { ctx.fillStyle = cols[(R() * 5) | 0]; ctx.save(); ctx.translate(R() * W, R() * H); ctx.rotate(R() * 3); ctx.fillRect(0, 0, 10 * k, 4 * k); ctx.restore(); }
+            return '#FFD166';
+        },
+        cny(ctx, W, H, k, R) {
+            const g = ctx.createRadialGradient(W / 2, H / 2, 0, W / 2, H / 2, Math.max(W, H) * .7); g.addColorStop(0, '#D7262E'); g.addColorStop(1, '#7A0A10');
+            ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+            ctx.strokeStyle = 'rgba(247,201,72,.18)'; ctx.lineWidth = 3 * k;
+            for (let y = 40 * k; y < H; y += 80 * k) for (let x = 40 * k; x < W; x += 80 * k) { ctx.beginPath(); ctx.arc(x, y, 26 * k, 0, Math.PI); ctx.stroke(); }
+            lantern(ctx, 110 * k, 120 * k, 70 * k); lantern(ctx, W - 110 * k, 120 * k, 70 * k);
+            lantern(ctx, 90 * k, H - 260 * k, 50 * k); lantern(ctx, W - 90 * k, H - 260 * k, 50 * k);
+            ctx.strokeStyle = '#F7C948'; ctx.lineWidth = 5 * k; rr(ctx, 18 * k, 18 * k, W - 36 * k, H - 36 * k, 28 * k); ctx.stroke();
+            return '#F7C948';
+        },
+        songkran(ctx, W, H, k, R) {
+            const g = ctx.createLinearGradient(0, 0, 0, H); g.addColorStop(0, '#00B4D8'); g.addColorStop(1, '#0077B6');
+            ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+            for (let i = 0; i < 40; i++) drop(ctx, R() * W, R() * H, (12 + R() * 26) * k, `rgba(255,255,255,${.25 + R() * .5})`);
+            for (let i = 0; i < 14; i++) flower(ctx, R() * W, R() * H, (8 + R() * 12) * k, R() > .5 ? '#FFB703' : '#FB8500');
+            ctx.fillStyle = 'rgba(255,255,255,.25)';
+            ctx.beginPath(); ctx.moveTo(0, H); for (let x = 0; x <= W; x += 10) ctx.lineTo(x, H - 70 * k - Math.sin(x / 40) * 14 * k); ctx.lineTo(W, H); ctx.fill();
+            return '#ffffff';
+        },
+        loykrathong(ctx, W, H, k, R) {
+            const g = ctx.createLinearGradient(0, 0, 0, H); g.addColorStop(0, '#0A1A3A'); g.addColorStop(.75, '#123A6B'); g.addColorStop(1, '#0B2547');
+            ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+            for (let i = 0; i < 90; i++) { ctx.fillStyle = `rgba(255,255,255,${.3 + R() * .6})`; ctx.beginPath(); ctx.arc(R() * W, R() * H * .7, (R() * 2.2 + .5) * k, 0, Math.PI * 2); ctx.fill(); }
+            ctx.save(); ctx.shadowColor = '#FFF3C4'; ctx.shadowBlur = 60 * k; ctx.fillStyle = '#FFF3C4';
+            ctx.beginPath(); ctx.arc(80 * k, 80 * k, 40 * k, 0, Math.PI * 2); ctx.fill(); ctx.restore();
+            ctx.strokeStyle = 'rgba(255,243,196,.25)'; ctx.lineWidth = 3 * k;
+            for (let y = H - 140 * k; y < H; y += 18 * k) { ctx.beginPath(); ctx.moveTo(R() * W * .3, y); ctx.lineTo(W - R() * W * .3, y); ctx.stroke(); }
+            krathong(ctx, 120 * k, H - 70 * k, 60 * k); krathong(ctx, W - 130 * k, H - 60 * k, 52 * k);
+            return '#FFE7A3';
+        },
+        xmas(ctx, W, H, k, R) {
+            const g = ctx.createLinearGradient(0, 0, 0, H); g.addColorStop(0, '#0E4D2E'); g.addColorStop(1, '#06301C');
+            ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+            for (let i = 0; i < 140; i++) { ctx.fillStyle = `rgba(255,255,255,${.5 + R() * .5})`; ctx.beginPath(); ctx.arc(R() * W, R() * H, (2 + R() * 5) * k, 0, Math.PI * 2); ctx.fill(); }
+            const s = 26 * k;
+            for (let x = 0; x < W; x += s) { ctx.fillStyle = (x / s | 0) % 2 ? '#fff' : '#D62828'; ctx.fillRect(x, 0, s, 14 * k); ctx.fillRect(x, H - 14 * k, s, 14 * k); }
+            star(ctx, 110 * k, 110 * k, 40 * k, '#FFD60A'); star(ctx, W - 110 * k, 110 * k, 40 * k, '#FFD60A');
+            return '#FFFFFF';
+        },
+        valentine(ctx, W, H, k, R) {
+            const g = ctx.createLinearGradient(0, 0, W, H); g.addColorStop(0, '#FF4D6D'); g.addColorStop(1, '#C9184A');
+            ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+            for (let i = 0; i < 34; i++) heart(ctx, R() * W, R() * H, (18 + R() * 40) * k, `rgba(255,${R() > .5 ? '255,255' : '179,198'},${.25 + R() * .45})`);
+            return '#FFFFFF';
+        }
+    };
+
+    // วาดพื้นหลังกรอบ; คืนค่าสีตัวอักษรท้ายกรอบ
+    function drawFrame(ctx, W, H, theme, bank) {
+        const R = rand(42);
+        const k = W / 1080; // scale สำหรับ thumbnail
+        if (theme.startsWith('custom:')) return drawCustomBg(ctx, W, H, theme.slice(7));
+        if (FRAMES[theme]) return FRAMES[theme](ctx, W, H, k, R, bank);
+        let g;
+        switch (theme) {
+            case 'carbon': {
+                ctx.fillStyle = '#121418'; ctx.fillRect(0, 0, W, H);
+                const c = Math.max(4, 18 * k);
+                for (let y = 0; y < H; y += c) for (let x = 0; x < W; x += c) {
+                    const even = ((x / c | 0) + (y / c | 0)) % 2 === 0;
+                    g = even ? ctx.createLinearGradient(x, y, x + c, y) : ctx.createLinearGradient(x, y, x, y + c);
+                    g.addColorStop(0, '#1A1D22'); g.addColorStop(.5, '#2E333B'); g.addColorStop(1, '#16181C');
+                    ctx.fillStyle = g; ctx.fillRect(x, y, c, c);
+                }
+                const sh = ctx.createLinearGradient(0, 0, W, H);
+                sh.addColorStop(0, 'rgba(255,255,255,.10)'); sh.addColorStop(.45, 'rgba(255,255,255,0)'); sh.addColorStop(1, 'rgba(0,0,0,.25)');
+                ctx.fillStyle = sh; ctx.fillRect(0, 0, W, H);
+                vignette(ctx, W, H, .55);
+                ctx.fillStyle = '#C8102E'; ctx.fillRect(0, 0, W, 10 * k);
+                return '#C9D1DC';
+            }
+            case 'steel': {
+                g = ctx.createLinearGradient(0, 0, W, H);
+                g.addColorStop(0, '#7B8692'); g.addColorStop(.35, '#C7CFD7'); g.addColorStop(.55, '#8E99A5'); g.addColorStop(1, '#5D6772');
+                ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+                for (let y = 0; y < H; y += 2) { ctx.fillStyle = `rgba(${R() > .5 ? '255,255,255' : '0,0,0'},${R() * .07})`; ctx.fillRect(0, y, W, 1); }
+                const r = 14 * k, o = 34 * k;
+                [[o, o], [W - o, o], [o, H - o], [W - o, H - o]].forEach(([x, y]) => rivet(ctx, x, y, r));
+                return '#1B2026';
+            }
+            case 'navy': {
+                g = ctx.createLinearGradient(0, 0, 0, H); g.addColorStop(0, '#0C1E3C'); g.addColorStop(1, '#06101F');
+                ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+                ctx.strokeStyle = 'rgba(212,162,76,.08)'; ctx.lineWidth = 2 * k;
+                for (let x = -H; x < W; x += 28 * k) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x + H, H); ctx.stroke(); }
+                ctx.strokeStyle = '#D4A24C'; ctx.lineWidth = 4 * k; rr(ctx, 22 * k, 22 * k, W - 44 * k, H - 44 * k, 30 * k); ctx.stroke();
+                ctx.lineWidth = 1.5 * k; rr(ctx, 34 * k, 34 * k, W - 68 * k, H - 68 * k, 22 * k); ctx.stroke();
+                corners(ctx, W, H, 48 * k, 60 * k, '#F0C878', 6 * k);
+                return '#E2B867';
+            }
+            case 'camo': {
+                ctx.fillStyle = '#4A5228'; ctx.fillRect(0, 0, W, H);
+                const cols = ['#353B1C', '#6E6A3C', '#2A2D18', '#5D6533'];
+                for (let i = 0; i < 70; i++) {
+                    ctx.fillStyle = cols[i % 4];
+                    const x = R() * W, y = R() * H, rx = (40 + R() * 120) * k, ry = (25 + R() * 70) * k;
+                    ctx.beginPath();
+                    for (let a = 0; a <= Math.PI * 2 + .01; a += Math.PI / 6) {
+                        const j = .7 + R() * .5;
+                        ctx.lineTo(x + Math.cos(a) * rx * j, y + Math.sin(a) * ry * j);
+                    }
+                    ctx.closePath(); ctx.fill();
+                }
+                vignette(ctx, W, H, .35);
+                return '#ECE6C8';
+            }
+            case 'racing': {
+                ctx.fillStyle = '#111317'; ctx.fillRect(0, 0, W, H);
+                ctx.save(); ctx.translate(W / 2, H / 2); ctx.rotate(-Math.PI / 5);
+                const L = Math.hypot(W, H);
+                ctx.fillStyle = '#E10600'; ctx.fillRect(-L, -150 * k, L * 2, 90 * k);
+                ctx.fillStyle = '#ffffff'; ctx.fillRect(-L, -40 * k, L * 2, 26 * k);
+                ctx.fillStyle = '#E10600'; ctx.fillRect(-L, 6 * k, L * 2, 26 * k);
+                ctx.restore();
+                const s = 20 * k;
+                for (let x = 0; x < W; x += s) for (let r = 0; r < 2; r++) {
+                    ctx.fillStyle = ((x / s | 0) + r) % 2 ? '#fff' : '#111317';
+                    ctx.fillRect(x, H - s * 2 + r * s, s, s);
+                }
+                return '#ffffff';
+            }
+            case 'neon': {
+                ctx.fillStyle = '#04060C'; ctx.fillRect(0, 0, W, H);
+                ctx.strokeStyle = 'rgba(0,229,255,.12)'; ctx.lineWidth = 1.5 * k;
+                for (let x = 0; x < W; x += 54 * k) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke(); }
+                for (let y = 0; y < H; y += 54 * k) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke(); }
+                const gl = ctx.createRadialGradient(W / 2, H, 0, W / 2, H, H * .8);
+                gl.addColorStop(0, 'rgba(124,77,255,.35)'); gl.addColorStop(1, 'rgba(124,77,255,0)');
+                ctx.fillStyle = gl; ctx.fillRect(0, 0, W, H);
+                ctx.save(); ctx.shadowColor = '#00E5FF'; ctx.shadowBlur = 30 * k;
+                ctx.strokeStyle = '#00E5FF'; ctx.lineWidth = 5 * k; rr(ctx, 24 * k, 24 * k, W - 48 * k, H - 48 * k, 34 * k); ctx.stroke();
+                ctx.restore();
+                return '#5EF2FF';
+            }
+            case 'leather': {
+                g = ctx.createRadialGradient(W / 2, H * .4, 0, W / 2, H / 2, Math.max(W, H) * .8);
+                g.addColorStop(0, '#5A3A24'); g.addColorStop(1, '#24160D');
+                ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+                for (let i = 0; i < 9000 * k * k; i++) { ctx.fillStyle = `rgba(0,0,0,${R() * .18})`; ctx.fillRect(R() * W, R() * H, 2 * k + .5, 2 * k + .5); }
+                ctx.strokeStyle = '#C8A27A'; ctx.lineWidth = 3 * k; ctx.setLineDash([14 * k, 10 * k]);
+                rr(ctx, 26 * k, 26 * k, W - 52 * k, H - 52 * k, 28 * k); ctx.stroke(); ctx.setLineDash([]);
+                return '#E9D3B5';
+            }
+            case 'matte':
+                g = ctx.createLinearGradient(0, 0, 0, H); g.addColorStop(0, '#23272E'); g.addColorStop(1, '#14171B');
+                ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+                corners(ctx, W, H, 30 * k, 70 * k, '#D4A24C', 5 * k);
+                return '#9AA3AF';
+            default: { // bank
+                const c = bank.color;
+                g = ctx.createLinearGradient(0, 0, W, H); g.addColorStop(0, shade(c, .05)); g.addColorStop(1, shade(c, -.55));
+                ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+                ctx.fillStyle = 'rgba(255,255,255,.06)';
+                for (let i = -H; i < W; i += 120 * k) { ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i + 50 * k, 0); ctx.lineTo(i + 50 * k + H, H); ctx.lineTo(i + H, H); ctx.fill(); }
+                vignette(ctx, W, H, .35);
+                return bank.fg ? bank.fg : '#ffffff';
+            }
+        }
+    }
+
+    const logoCache = {};
+    function logoImg(acc) {
+        if (!acc.logo) return null;
+        let im = logoCache[acc.logo];
+        if (!im) { im = new Image(); im.onload = () => renderCard(); im.src = acc.logo; logoCache[acc.logo] = im; }
+        return im.complete && im.naturalWidth ? im : null;
+    }
+    function drawBadge(ctx, bank, cx, cy, r, logo) {
+        if (logo) {
+            ctx.save(); ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.fill(); ctx.clip();
+            const s = Math.min(logo.naturalWidth, logo.naturalHeight);
+            ctx.drawImage(logo, (logo.naturalWidth - s) / 2, (logo.naturalHeight - s) / 2, s, s, cx - r, cy - r, r * 2, r * 2);
+            ctx.restore(); return;
+        }
+        ctx.fillStyle = bank.color; ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = bank.fg || '#fff'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        let fs = r * 0.95;
+        do { ctx.font = `700 ${fs}px Prompt, sans-serif`; fs -= 2; } while (ctx.measureText(bank.short).width > r * 1.55 && fs > 10);
+        ctx.fillText(bank.short, cx, cy + r * 0.04);
+        ctx.textBaseline = 'alphabetic';
+    }
+
+    function wrapText(ctx, text, maxW) {
+        const lines = []; let line = '';
+        for (const ch of text) {
+            const test = line + ch;
+            if (ctx.measureText(test).width > maxW && line) { lines.push(line); line = ch; } else line = test;
+        }
+        if (line) lines.push(line);
+        return lines;
+    }
+
+    function fitFont(ctx, text, weight, size, maxW) {
+        while (size > 18) { ctx.font = `${weight} ${size}px Prompt, sans-serif`; if (ctx.measureText(text).width <= maxW) break; size -= 2; }
+        return size;
+    }
+
+    function cardLayout(acc, amountVal) {
+        const formatted = acc.type === 'fixed' ? null : fmtAmount(amountVal);
+        const W = 1080, M = 92, CW = W - M * 2, CX = M;
+        const pad = 50, QR = 580;
+        const meas = document.createElement('canvas').getContext('2d');
+        meas.font = '700 50px Prompt, sans-serif';
+        const nameLines = wrapText(meas, acc.name || '-', CW - pad * 2).slice(0, 2);
+        const details = detailLines(acc);
+        const headerH = 150, barH = 72, qrBox = QR + 60;
+        const infoH = 86 + nameLines.length * 62 - 12 + details.length * 46 + (formatted ? 100 : 0) + 56;
+        const CH = headerH + barH + qrBox + infoH;
+        const topM = 180, footH = 150;
+        return { W, CW, CX, CY: topM, pad, QR, nameLines, details, headerH, barH, CH, topM, H: topM + CH + footH };
+    }
+
+    function drawCard(acc, amountVal) {
+        const bank = bankOf(acc);
+        const isFixed = acc.type === 'fixed';
+        const formatted = isFixed ? null : fmtAmount(amountVal);
+        const payload = payloadFor(acc, amountVal);
+
+        const { W, CW, CX, pad, QR, nameLines, details, headerH, barH, CH, topM, H } = cardLayout(acc, amountVal);
+
+        const canvas = document.createElement('canvas');
+        canvas.width = W; canvas.height = H;
+        const ctx = canvas.getContext('2d');
+
+        const footInk = drawFrame(ctx, W, H, themeOf(acc), bank);
+
+        // การ์ดขาว + เงา
+        const CY = topM;
+        ctx.save();
+        ctx.shadowColor = 'rgba(0,0,0,.22)'; ctx.shadowBlur = 40; ctx.shadowOffsetY = 14;
+        ctx.fillStyle = '#fff'; rr(ctx, CX, CY, CW, CH, 40); ctx.fill();
+        ctx.restore();
+
+        ctx.save(); rr(ctx, CX, CY, CW, CH, 40); ctx.clip();
+
+        // header: ตราธนาคาร + ชื่อธนาคาร
+        const logo = logoImg(acc);
+        drawBadge(ctx, bank, CX + pad + 38, CY + headerH / 2, 46, logo);
+        ctx.textAlign = 'left'; ctx.fillStyle = '#1a1a1a';
+        const tx = CX + pad + 108, tagW = 210;
+        fitFont(ctx, bank.name, 700, 40, CW - pad * 2 - 108 - tagW - 10);
+        ctx.fillText(bank.name, tx, CY + headerH / 2 - 4);
+        ctx.font = '400 26px Prompt, sans-serif'; ctx.fillStyle = '#7a8494';
+        ctx.fillText(bank.en, tx, CY + headerH / 2 + 34);
+
+        // แท็กประเภท
+        const tag = isFixed ? 'QR ธนาคาร' : 'พร้อมเพย์';
+        ctx.font = '600 26px Prompt, sans-serif';
+        const tw = ctx.measureText(tag).width + 40;
+        const tX = CX + CW - pad - tw, tY = CY + headerH / 2 - 26;
+        ctx.fillStyle = shade(bank.color, .85); rr(ctx, tX, tY, tw, 52, 26); ctx.fill();
+        ctx.fillStyle = inkOf(bank); ctx.textAlign = 'center'; ctx.fillText(tag, tX + tw / 2, tY + 36);
+
+        // แถบ THAI QR PAYMENT
+        const barY = CY + headerH;
+        ctx.fillStyle = '#113566'; ctx.fillRect(CX, barY, CW, barH);
+        ctx.fillStyle = '#fff'; ctx.font = '700 30px Prompt, sans-serif'; ctx.textAlign = 'center';
+        ctx.fillText('THAI QR PAYMENT', W / 2, barY + 48);
+
+        // QR
+        const qrY = barY + barH + 30;
+        const qx = (W - QR) / 2;
+        if (payload) {
+            const qc = makeQrCanvas(payload, QR);
+            ctx.imageSmoothingEnabled = false;
+            ctx.drawImage(qc, qx, qrY, QR, QR);
+            ctx.imageSmoothingEnabled = true;
+            // ตรากลาง QR
+            ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(W / 2, qrY + QR / 2, 50, 0, Math.PI * 2); ctx.fill();
+            drawBadge(ctx, bank, W / 2, qrY + QR / 2, 42, logo);
+        } else {
+            ctx.fillStyle = '#f2f4f7'; rr(ctx, qx, qrY, QR, QR, 20); ctx.fill();
+            ctx.fillStyle = '#7a8494'; ctx.font = '500 34px Prompt, sans-serif'; ctx.textAlign = 'center';
+            ctx.fillText('ยังไม่มีรูป QR', W / 2, qrY + QR / 2);
         }
 
-        function isIOS() {
-            return /iPad|iPhone|iPod/.test(navigator.userAgent)
-                || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+        // เส้นปรุ
+        let y = qrY + QR + 30;
+        ctx.strokeStyle = '#dfe4ea'; ctx.lineWidth = 3; ctx.setLineDash([14, 12]);
+        ctx.beginPath(); ctx.moveTo(CX + pad, y); ctx.lineTo(CX + CW - pad, y); ctx.stroke(); ctx.setLineDash([]);
+
+        // ชื่อบัญชี / รายละเอียด
+        y += 36 + 50;
+        ctx.textAlign = 'center'; ctx.fillStyle = '#1a1a1a'; ctx.font = '700 50px Prompt, sans-serif';
+        nameLines.forEach(l => { ctx.fillText(l, W / 2, y); y += 62; });
+        y -= 12;
+        ctx.fillStyle = '#5d6675'; ctx.font = '400 32px Prompt, sans-serif';
+        details.forEach(l => { y += 46; ctx.fillText(l, W / 2, y); });
+
+        if (formatted) {
+            y += 100;
+            ctx.fillStyle = inkOf(bank); ctx.font = '700 72px Prompt, sans-serif';
+            ctx.fillText('฿ ' + formatted, W / 2, y);
+        }
+        ctx.restore();
+
+        // ท้ายกรอบ
+        ctx.fillStyle = footInk; ctx.textAlign = 'center'; ctx.font = '500 30px Prompt, sans-serif';
+        ctx.fillText('สแกนเพื่อโอนเงินด้วยแอปธนาคารใดก็ได้', W / 2, CY + CH + 84);
+        const th = THEMES.find(t => t.id === themeOf(acc));
+        if (th) {
+        ctx.save(); ctx.shadowColor = 'rgba(0,0,0,.25)'; ctx.shadowBlur = 8;
+        ctx.fillStyle = footInk; ctx.font = '700 54px Prompt, sans-serif';
+        ctx.fillText(th.title || 'QR รับเงิน', W / 2, 122); ctx.restore();
         }
 
-        let deferredInstall = null;
+        return canvas;
+    }
 
-        function initPWA() {
-            if ('serviceWorker' in navigator) {
-                navigator.serviceWorker.register('/sw.js').catch(() => {});
+    /* ================= render ================= */
+    function badgeHtml(acc) {
+        const b = bankOf(acc);
+        if (acc.logo) return `<span class="badge" style="background:#fff url(${acc.logo}) center/cover"></span>`;
+        return `<span class="badge" style="background:${b.color};color:${b.fg || '#fff'}">${b.short}</span>`;
+    }
+    function renderChips() {
+        const row = document.getElementById('accRow');
+        row.innerHTML = '';
+        state.accounts.forEach(acc => {
+            const b = bankOf(acc);
+            const el = document.createElement('button');
+            el.className = 'acc-chip' + (acc.id === state.activeId ? ' active' : '');
+            el.style.setProperty('--accent', b.color);
+            el.innerHTML = badgeHtml(acc) + '<span class="lbl"></span>';
+            el.querySelector('.lbl').textContent = (state.defaultId === acc.id ? '★ ' : '') + chipLabel(acc);
+            el.onclick = () => { setActive(acc.id); renderAll(); };
+            row.appendChild(el);
+        });
+        const add = document.createElement('button');
+        add.className = 'acc-chip add'; add.textContent = '+ เพิ่ม';
+        add.onclick = () => openEditor(null);
+        row.appendChild(add);
+        row.querySelector('.active')?.scrollIntoView({ inline: 'nearest', block: 'nearest' });
+    }
+    function chipLabel(acc) {
+        const b = bankOf(acc);
+        const kind = acc.type === 'phone' ? 'เบอร์' : acc.type === 'idcard' ? 'บัตร' : (acc.accNo ? '…' + digits(acc.accNo).slice(-4) : 'QR');
+        return (acc.bank === 'PP' ? 'พร้อมเพย์' : b.en) + ' · ' + kind;
+    }
+
+    let themeCat = null;
+    function renderThemes() {
+        const acc = activeAcc(), b = bankOf(acc);
+        const cur = THEMES.find(t => t.id === themeOf(acc));
+        if (!themeCat) themeCat = cur ? cur.cat : (themeOf(acc).startsWith('custom:') ? 'mine' : 'men');
+        const cats = document.getElementById('themeCats');
+        cats.innerHTML = '';
+        THEME_CATS.forEach(c => {
+            const el = document.createElement('button');
+            el.className = 'cat-pill' + (c.id === themeCat ? ' active' : '');
+            el.textContent = c.name;
+            el.onclick = () => { themeCat = c.id; renderThemes(); };
+            cats.appendChild(el);
+        });
+        const row = document.getElementById('themeRow');
+        row.innerHTML = '';
+        THEMES.filter(t => t.cat === themeCat).forEach(t => {
+            const el = document.createElement('button');
+            el.className = 'theme-dot' + (themeOf(acc) === t.id ? ' active' : '');
+            el.title = t.name; el.setAttribute('aria-label', 'กรอบ ' + t.name);
+            el.innerHTML = '<span></span>';
+            el.querySelector('span').textContent = t.name;
+            const c = document.createElement('canvas'); c.width = 120; c.height = 120;
+            drawFrame(c.getContext('2d'), 120, 120, t.id, b);
+            el.style.backgroundImage = `url(${c.toDataURL()})`;
+            el.onclick = () => { acc.theme = t.id; saveState(); renderThemes(); renderCard(); };
+            row.appendChild(el);
+        });
+        if (themeCat === 'mine') renderMine(row, acc);
+    }
+    function renderMine(row, acc) {
+        const tile = (label, fn, cls = '') => {
+            const el = document.createElement('button'); el.className = 'theme-dot tool ' + cls;
+            el.innerHTML = label; el.onclick = fn; row.appendChild(el); return el;
+        };
+        tile('<b>＋</b><span>อัปโหลด</span>', () => document.getElementById('bgFile').click());
+        tile('<b>📐</b><span>แม่แบบ</span>', downloadTemplate);
+        bgList().forEach(b => {
+            const id = 'custom:' + b.id;
+            const el = tile('<span>ของฉัน</span><i class="x" title="ลบ">×</i>', () => { acc.theme = id; saveState(); renderThemes(); renderCard(); },
+                themeOf(acc) === id ? 'active' : '');
+            el.classList.remove('tool');
+            if (bgData[b.id]) el.style.backgroundImage = `url(${bgData[b.id]})`;
+            el.querySelector('.x').onclick = ev => {
+                ev.stopPropagation();
+                const x = ev.target;
+                if (!x.classList.contains('sure')) { x.classList.add('sure'); x.textContent = 'ลบ?'; setTimeout(() => { x.classList.remove('sure'); x.textContent = '×'; }, 2500); return; }
+                deleteBg(b.id);
+            };
+        });
+    }
+
+    function renderCard() {
+        const acc = activeAcc();
+        const isFixed = acc.type === 'fixed';
+        document.getElementById('amountField').style.display = isFixed ? 'none' : 'flex';
+        document.getElementById('fixedNote').style.display = isFixed ? 'block' : 'none';
+        const src = drawCard(acc, document.getElementById('amountInput').value);
+        const view = document.getElementById('cardCanvas');
+        view.width = src.width; view.height = src.height;
+        view.getContext('2d').drawImage(src, 0, 0);
             }
 
-            if (isStandalone()) return;
+    function renderAll() { renderChips(); renderThemes(); renderCard(); }
 
-            const banner = document.getElementById('installBanner');
-            const dismissed = localStorage.getItem('pwa-dismissed');
+    /* ================= editor ================= */
+    let editing = null; // draft account
 
-            window.addEventListener('beforeinstallprompt', (e) => {
-                e.preventDefault();
-                deferredInstall = e;
-                document.getElementById('installBtn').style.display = 'flex';
-                if (!dismissed) banner.classList.add('show');
-            });
+    function fillBankSelect() {
+        const sel = document.getElementById('fBank');
+        sel.innerHTML = Object.entries(BANKS).map(([k, b]) => `<option value="${k}">${k === 'PP' ? 'ไม่ระบุ (พร้อมเพย์)' : b.name}</option>`).join('');
+    }
 
-            if (isIOS() && !dismissed) {
-                document.getElementById('installBtn').style.display = 'flex';
-            }
-
-            document.getElementById('installGo').addEventListener('click', async () => {
-                if (deferredInstall) {
-                    deferredInstall.prompt();
-                    await deferredInstall.userChoice;
-                    deferredInstall = null;
-                    banner.classList.remove('show');
-                } else {
-                    document.getElementById('iosInstallOverlay').classList.add('open');
-                }
-            });
-
-            document.getElementById('installBtn').addEventListener('click', () => {
-                if (deferredInstall) {
-                    document.getElementById('installGo').click();
-                } else {
-                    document.getElementById('iosInstallOverlay').classList.add('open');
-                }
-            });
-
-            document.getElementById('installDismiss').addEventListener('click', () => {
-                banner.classList.remove('show');
-                localStorage.setItem('pwa-dismissed', '1');
-                render();
-            });
-
-            document.getElementById('closeIosInstall').addEventListener('click', () =>
-                document.getElementById('iosInstallOverlay').classList.remove('open'));
-            document.getElementById('iosInstallOverlay').addEventListener('click', e => {
-                if (e.target === e.currentTarget) e.currentTarget.classList.remove('open');
-            });
+    function setType(type) {
+        editing.type = type;
+        document.querySelectorAll('#typeSeg button').forEach(b => b.classList.toggle('active', b.dataset.type === type));
+        const pp = type !== 'fixed';
+        document.getElementById('ppField').style.display = pp ? 'block' : 'none';
+        document.getElementById('qrField').style.display = pp ? 'none' : 'block';
+        const inp = document.getElementById('fPpId');
+        if (type === 'phone') {
+            document.getElementById('ppLabel').textContent = 'เบอร์มือถือพร้อมเพย์';
+            document.getElementById('ppHint').textContent = '10 หลัก ขึ้นต้นด้วย 0';
+            inp.placeholder = '0812345678'; inp.maxLength = 12;
+        } else if (type === 'idcard') {
+            document.getElementById('ppLabel').textContent = 'เลขบัตรประชาชนพร้อมเพย์';
+            document.getElementById('ppHint').textContent = '13 หลัก ที่ลงทะเบียนพร้อมเพย์แล้ว (บนกรอบจะซ่อนบางหลัก)';
+            inp.placeholder = '1234567890123'; inp.maxLength = 17;
         }
+        document.getElementById('accNoHint').textContent = pp
+            ? 'ไม่บังคับ — ไว้ให้ผู้โอนเห็นว่าเข้าบัญชีไหน'
+            : 'แนะนำให้ใส่ — ผู้โอนจะเห็นเลขบัญชีบนกรอบ';
+    }
+
+    function setUploadState(kind, html) {
+        const box = document.getElementById('uploadBox');
+        box.classList.remove('ok', 'err'); if (kind) box.classList.add(kind);
+        document.getElementById('uploadInner').innerHTML = html;
+    }
+
+    function openEditor(acc) {
+        editing = acc ? { ...acc } : { id: uid(), type: 'phone', bank: 'PP', name: activeAcc()?.name || '', ppId: '', accNo: '', theme: 'carbon', qr: '' };
+        editing._isNew = !acc;
+        document.getElementById('editTitle').textContent = acc ? 'แก้ไขบัญชี' : 'เพิ่มบัญชี';
+        document.getElementById('fBank').value = editing.bank;
+        document.getElementById('fName').value = editing.name;
+        document.getElementById('fPpId').value = editing.ppId || '';
+        document.getElementById('fAccNo').value = editing.accNo || '';
+        document.getElementById('fQrFile').value = '';
+        if (editing.qr) setUploadState('ok', '✓ มี QR แล้ว — แตะเพื่อเปลี่ยนรูป');
+        else setUploadState(null, 'แตะเพื่อเลือกรูป QR<br><small>เช่น QR รับเงินจาก K PLUS / SCB EASY (ภาพหน้าจอได้)</small>');
+        setType(editing.type);
+        updateLogoPreview();
+        closeAll();
+        document.getElementById('editOverlay').classList.add('open');
+    }
+
+    function updateLogoPreview() {
+        const el = document.getElementById('logoPreview');
+        const b = BANKS[document.getElementById('fBank').value] || BANKS.PP;
+        if (editing.logo) { el.style.background = `#fff url(${editing.logo}) center/cover`; el.textContent = ''; }
+        else { el.style.background = b.color; el.style.color = b.fg || '#fff'; el.textContent = b.short; }
+        document.getElementById('logoClear').style.display = editing.logo ? '' : 'none';
+    }
+    function onLogoFile(e) {
+        const file = e.target.files[0]; if (!file) return;
+        const url = URL.createObjectURL(file), im = new Image();
+        im.onload = () => {
+            const c = document.createElement('canvas'); c.width = c.height = 160;
+            const cx = c.getContext('2d'), s = Math.min(im.naturalWidth, im.naturalHeight);
+            cx.fillStyle = '#fff'; cx.fillRect(0, 0, 160, 160);
+            cx.drawImage(im, (im.naturalWidth - s) / 2, (im.naturalHeight - s) / 2, s, s, 0, 0, 160, 160);
+            editing.logo = c.toDataURL('image/png'); URL.revokeObjectURL(url); updateLogoPreview();
+        };
+        im.onerror = () => showToast('เปิดรูปไม่ได้');
+        im.src = url;
+    }
+
+    async function decodeQrFile(file) {
+        const url = URL.createObjectURL(file);
+        try {
+            const img = await new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = url; });
+            // ลองหลายขนาด เพราะภาพหน้าจอใหญ่/เล็กต่างกัน
+            for (const max of [1000, 1600, 600]) {
+                const s = Math.min(1, max / Math.max(img.naturalWidth, img.naturalHeight));
+                const c = document.createElement('canvas');
+                c.width = Math.round(img.naturalWidth * s); c.height = Math.round(img.naturalHeight * s);
+                const cx = c.getContext('2d', { willReadFrequently: true });
+                cx.fillStyle = '#fff'; cx.fillRect(0, 0, c.width, c.height);
+                cx.drawImage(img, 0, 0, c.width, c.height);
+                const d = cx.getImageData(0, 0, c.width, c.height);
+                const r = jsQR(d.data, c.width, c.height, { inversionAttempts: 'attemptBoth' });
+                if (r && r.data) return { data: r.data, thumb: url };
+            }
+            return { data: null, thumb: url };
+        } catch (e) {
+            return { data: null, thumb: url };
+        }
+    }
+
+    async function onQrFile(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        if (typeof jsQR === 'undefined') { setUploadState('err', 'โหลดตัวอ่าน QR ไม่สำเร็จ — ต่ออินเทอร์เน็ตแล้วลองใหม่'); return; }
+        setUploadState(null, 'กำลังอ่าน QR...');
+        const { data, thumb } = await decodeQrFile(file);
+        if (!data) { setUploadState('err', `<img src="${thumb}" alt="">อ่าน QR ไม่ได้ — ลองครอปให้เห็น QR ชัดๆ`); return; }
+        editing.qr = data;
+        const emv = parseEmv(data);
+        const valid = emvCrcOk(data);
+        if (emv['59'] && !document.getElementById('fName').value.trim()) document.getElementById('fName').value = emv['59'];
+        setUploadState(valid ? 'ok' : 'err',
+            `<img src="${thumb}" alt="">` + (valid ? '✓ อ่าน QR ได้ (Thai QR)' : '⚠ อ่านได้ แต่ไม่ใช่ Thai QR มาตรฐาน — ตรวจสอบก่อนใช้'));
+    }
+
+    function saveEditor() {
+        const e = editing;
+        e.bank = document.getElementById('fBank').value;
+        e.name = document.getElementById('fName').value.trim();
+        e.ppId = document.getElementById('fPpId').value.trim();
+        e.accNo = document.getElementById('fAccNo').value.trim();
+        if (!e.name) return showToast('กรุณาใส่ชื่อบัญชี');
+        if (e.type === 'phone' && digits(e.ppId).length !== 10) return showToast('เบอร์ต้องมี 10 หลัก');
+        if (e.type === 'idcard' && digits(e.ppId).length !== 13) return showToast('เลขบัตรต้องมี 13 หลัก');
+        if (e.type === 'fixed' && !e.qr) return showToast('กรุณาเลือกรูป QR');
+        if (e.type === 'fixed') e.ppId = '';
+        const isNew = e._isNew; delete e._isNew;
+        if (isNew) state.accounts.push(e);
+        else state.accounts = state.accounts.map(a => a.id === e.id ? e : a);
+        state.activeId = e.id;
+        saveState();
+        closeAll(); renderAll();
+        showToast('✓ บันทึกแล้ว');
+    }
+
+    /* ================= list ================= */
+    function renderList() {
+        const list = document.getElementById('accList');
+        list.innerHTML = '';
+        const n = state.accounts.length;
+        state.accounts.forEach((acc, idx) => {
+            const b = bankOf(acc);
+            const isDef = state.defaultId === acc.id;
+            const el = document.createElement('div');
+            el.className = 'acc-item' + (isDef ? ' is-default' : '');
+            el.innerHTML = `<div class="acc-top">${badgeHtml(acc)}
+                    <div class="meta"><b></b><small></small></div>
+                    <button class="star-btn" aria-label="ตั้งเป็นบัญชีเริ่มต้น">${isDef ? '★' : '☆'}</button>
+                </div>
+                <div class="acc-tools">
+                    <span class="def-tag">${isDef ? '★ บัญชีเริ่มต้น' : ''}</span>
+                    <button class="mini-btn up" ${idx === 0 ? 'disabled' : ''} aria-label="เลื่อนขึ้น">▲</button>
+                    <button class="mini-btn down" ${idx === n - 1 ? 'disabled' : ''} aria-label="เลื่อนลง">▼</button>
+                    <button class="mini-btn edit">แก้ไข</button>
+                    <button class="mini-btn del">ลบ</button>
+                </div>`;
+            el.querySelector('b').textContent = acc.name || '-';
+            el.querySelector('small').textContent = (acc.bank === 'PP' ? 'พร้อมเพย์' : b.name) + ' · ' +
+                (acc.type === 'fixed' ? 'QR ธนาคาร' + (acc.accNo ? ' ' + fmtAccNo(acc.accNo) : '') : detailLines(acc)[0]);
+            el.querySelector('.star-btn').onclick = () => {
+                state.defaultId = acc.id; state.activeId = acc.id;
+                saveState(); renderList(); renderAll(); showToast('★ ตั้งเป็นบัญชีเริ่มต้นแล้ว');
+            };
+            el.querySelector('.edit').onclick = () => openEditor(acc);
+            const move = d => {
+                const j = idx + d; if (j < 0 || j >= n) return;
+                [state.accounts[idx], state.accounts[j]] = [state.accounts[j], state.accounts[idx]];
+                saveState(); renderList(); renderChips();
+            };
+            el.querySelector('.up').onclick = () => move(-1);
+            el.querySelector('.down').onclick = () => move(1);
+            const del = el.querySelector('.del');
+            del.onclick = () => {
+                if (!del.classList.contains('confirm')) {
+                    del.classList.add('confirm'); del.textContent = 'ยืนยันลบ?';
+                    setTimeout(() => { del.classList.remove('confirm'); del.textContent = 'ลบ'; }, 3000);
+                    return;
+                }
+                if (n === 1) return showToast('ต้องมีอย่างน้อย 1 บัญชี');
+                state.accounts = state.accounts.filter(a => a.id !== acc.id);
+                if (state.activeId === acc.id) state.activeId = state.accounts[0].id;
+                if (state.defaultId === acc.id) state.defaultId = state.accounts[0].id;
+                saveState(); renderList(); renderAll();
+            };
+            list.appendChild(el);
+        });
+        renderStorageInfo(); renderCloud();
+    }
+
+    /* ================= สำรองข้อมูล ================= */
+    async function requestPersist() {
+        try { if (navigator.storage?.persist && !(await navigator.storage.persisted())) await navigator.storage.persist(); } catch (e) { /* ignore */ }
+    }
+    async function renderStorageInfo() {
+        const el = document.getElementById('storageInfo');
+        let persisted = false;
+        try { persisted = !!(await navigator.storage?.persisted?.()); } catch (e) { /* ignore */ }
+        el.innerHTML = (persisted ? '🔒 เครื่องนี้ล็อกข้อมูลไว้แล้ว ระบบจะไม่ลบเอง' : '⚠️ ข้อมูลเก็บในเบราว์เซอร์เครื่องนี้') +
+            '<br>ถ้าล้างข้อมูลเบราว์เซอร์ ลบแอป หรือเปลี่ยนเครื่อง ข้อมูลจะหาย — กด <b>สำรองข้อมูล</b> เก็บไฟล์ไว้ (เช่น ส่งเข้า LINE ตัวเอง/Google Drive)';
+    }
+    async function exportBackup() {
+        const data = { app: 'qr-pui', version: 2, exportedAt: new Date().toISOString(), ...state };
+        const blob = new Blob([JSON.stringify(data, null, 1)], { type: 'application/json' });
+        const d = new Date(), name = `qr-pui-backup-${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}.json`;
+        const file = new File([blob], name, { type: 'application/json' });
+        try {
+            if (navigator.share && navigator.canShare?.({ files: [file] })) { await navigator.share({ files: [file], title: 'สำรองข้อมูล QR รับเงิน' }); return; }
+        } catch (e) { if (e.name === 'AbortError') return; }
+        const url = URL.createObjectURL(blob), a = document.createElement('a');
+        a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 3000);
+        showToast('✓ ดาวน์โหลดไฟล์สำรองแล้ว');
+    }
+    async function importBackup(e) {
+        const file = e.target.files[0]; e.target.value = '';
+        if (!file) return;
+        try {
+            const data = JSON.parse(await file.text());
+            if (!Array.isArray(data.accounts) || !data.accounts.length || !data.accounts.every(a => a && a.id && a.type)) throw new Error('bad');
+            // รวมกับของเดิม: id ซ้ำ = ใช้ของในไฟล์
+            const map = new Map(state.accounts.map(a => [a.id, a]));
+            data.accounts.forEach(a => map.set(a.id, a));
+            state.accounts = [...map.values()];
+            state.defaultId = data.defaultId && map.has(data.defaultId) ? data.defaultId : (state.defaultId || state.accounts[0].id);
+            state.activeId = state.defaultId;
+            saveState(); renderList(); renderAll();
+            showToast(`✓ นำเข้า ${data.accounts.length} บัญชีแล้ว`);
+        } catch (err) {
+            showToast('ไฟล์ไม่ถูกต้อง');
+        }
+    }
+
+    function closeAll() { document.querySelectorAll('.overlay.open').forEach(o => o.classList.remove('open')); }
+
+    /* ================= พื้นหลังของฉัน (อัปโหลดเอง) ================= */
+    const BG_KEY = 'qr-pui-bgs';
+    let bgData = {};               // id -> dataURL (เก็บในเครื่อง)
+    const bgImgs = {};             // id -> { img, ink }
+    try { bgData = JSON.parse(localStorage.getItem(BG_KEY) || '{}'); } catch (e) { bgData = {}; }
+    function saveBgData() {
+        try { localStorage.setItem(BG_KEY, JSON.stringify(bgData)); return true; }
+        catch (e) { showToast('พื้นที่เครื่องเต็ม — ลบพื้นหลังเก่าก่อน'); return false; }
+    }
+    function bgList() { return state.bgs || (state.bgs = []); }
+    function bgImg(id) {
+        const url = bgData[id]; if (!url) return null;
+        let o = bgImgs[id];
+        if (!o) {
+            o = bgImgs[id] = { img: new Image(), ink: '#ffffff' };
+            o.img.onload = () => {
+                const c = document.createElement('canvas'); c.width = 24; c.height = 24;
+                const x = c.getContext('2d'); x.drawImage(o.img, 0, 0, 24, 24);
+                const d = x.getImageData(0, 18, 24, 6).data; let L = 0;
+                for (let i = 0; i < d.length; i += 4) L += .299 * d[i] + .587 * d[i + 1] + .114 * d[i + 2];
+                o.ink = L / (d.length / 4) > 150 ? '#1a1a1a' : '#ffffff';
+                renderThemes(); renderCard();
+            };
+            o.img.src = url;
+        }
+        return o.img.complete && o.img.naturalWidth ? o : null;
+    }
+    function drawCustomBg(ctx, W, H, id) {
+        const o = bgImg(id);
+        if (!o) { ctx.fillStyle = '#2A313C'; ctx.fillRect(0, 0, W, H); return '#ffffff'; }
+        const im = o.img, s = Math.max(W / im.naturalWidth, H / im.naturalHeight);
+        const w = im.naturalWidth * s, h = im.naturalHeight * s;
+        ctx.drawImage(im, (W - w) / 2, (H - h) / 2, w, h);
+        return o.ink;
+    }
+    function onBgFile(e) {
+        const file = e.target.files[0]; e.target.value = '';
+        if (!file) return;
+        const url = URL.createObjectURL(file), im = new Image();
+        im.onload = () => {
+            const s = Math.min(1, 1080 / im.naturalWidth, 2400 / im.naturalHeight);
+            const c = document.createElement('canvas');
+            c.width = Math.round(im.naturalWidth * s); c.height = Math.round(im.naturalHeight * s);
+            c.getContext('2d').drawImage(im, 0, 0, c.width, c.height);
+            URL.revokeObjectURL(url);
+            const id = 'bg' + uid();
+            bgData[id] = c.toDataURL('image/jpeg', .82);
+            if (!saveBgData()) { delete bgData[id]; return; }
+            bgList().push({ id });
+            const acc = activeAcc(); acc.theme = 'custom:' + id;
+            saveState(); renderThemes(); renderCard();
+            showToast('✓ เพิ่มพื้นหลังแล้ว');
+        };
+        im.onerror = () => showToast('เปิดรูปไม่ได้');
+        im.src = url;
+    }
+    function deleteBg(id) {
+        state.bgs = bgList().filter(b => b.id !== id);
+        const gone = 'custom:' + id;
+        state.accounts.forEach(a => { if (a.theme === gone) a.theme = 'carbon'; });
+        const path = bgPath(id);
+        delete bgData[id]; delete bgImgs[id]; saveBgData();
+        saveState(); renderThemes(); renderCard();
+        if (sbUser) sb.storage.from(SB_BUCKET).remove([path]).catch(() => {});
+    }
+    // แม่แบบสำหรับออกแบบใน Canva: ขนาดเท่ากรอบจริงของบัญชีที่เลือก
+    function downloadTemplate() {
+        const acc = activeAcc();
+        const L = cardLayout(acc, document.getElementById('amountInput').value);
+        const c = document.createElement('canvas'); c.width = L.W; c.height = L.H;
+        const x = c.getContext('2d');
+        x.fillStyle = '#9AA5B1'; x.fillRect(0, 0, L.W, L.H);
+        x.fillStyle = 'rgba(255,255,255,.85)'; rr(x, L.CX, L.CY, L.CW, L.CH, 40); x.fill();
+        x.strokeStyle = '#E63946'; x.lineWidth = 4; x.setLineDash([16, 10]); rr(x, L.CX, L.CY, L.CW, L.CH, 40); x.stroke(); x.setLineDash([]);
+        x.fillStyle = '#E63946'; x.textAlign = 'center'; x.font = '700 44px Prompt, sans-serif';
+        x.fillText('การ์ด QR วางทับตรงนี้', L.W / 2, L.CY + L.CH / 2 - 20);
+        x.font = '400 30px Prompt, sans-serif';
+        x.fillText('ออกแบบลวดลายรอบๆ ได้เลย', L.W / 2, L.CY + L.CH / 2 + 30);
+        x.fillStyle = '#1D3557'; x.font = '600 30px Prompt, sans-serif';
+        x.fillText(`หัวกรอบ (${L.W}×${L.CY})`, L.W / 2, L.CY / 2 + 10);
+        x.fillText('ข้อความท้าย "สแกนเพื่อโอนเงิน..."', L.W / 2, L.CY + L.CH + 84);
+        x.font = '400 26px Prompt, sans-serif';
+        x.fillText(`ขนาดรูป ${L.W}×${L.H} px`, L.W / 2, L.H - 30);
+        c.toBlob(b => { downloadBlob(b, `qr-pui-template-${L.W}x${L.H}.png`); showToast(`แม่แบบ ${L.W}×${L.H} px`); }, 'image/png');
+    }
+
+    /* ================= Supabase (ใช้โปรเจกต์เดียวกับ PuiHome&Tax) ================= */
+    const SB_URL = 'https://fmbympgecspgqtnazrbm.supabase.co';
+    const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZtYnltcGdlY3NwZ3F0bmF6cmJtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA3NDkwOTksImV4cCI6MjA2NjMyNTA5OX0.rqOrNDNRTF7WnDS6utTTKfFoNZKPiMZV_ttqYzYCaJs';
+    const SB_TABLE = 'qr_pui_state', SB_BUCKET = 'qr-pui';
+    let sb = null, sbUser = null, pushTimer = null, lastSync = null, cloudMsg = '';
+    const bgPath = id => `${sbUser?.id}/${id}.jpg`;
+
+    function initCloud() {
+        if (typeof supabase === 'undefined') { cloudMsg = 'โหลดระบบคลาวด์ไม่ได้ (ออฟไลน์?)'; renderCloud(); return; }
+        sb = supabase.createClient(SB_URL, SB_KEY);
+        sb.auth.getSession().then(({ data }) => onAuth(data.session));
+        sb.auth.onAuthStateChange((_e, s) => onAuth(s));
+    }
+    async function onAuth(session) {
+        const u = session ? session.user : null;
+        const changed = (u && u.id) !== (sbUser && sbUser.id);
+        sbUser = u; renderCloud();
+        if (u && changed) await syncNow();
+    }
+    function setCloud(msg) { cloudMsg = msg; renderCloud(); }
+    function cloudPayload() {
+        const { accounts, defaultId, bgs, updatedAt } = state;
+        return { accounts, defaultId, bgs: (bgs || []).map(b => ({ id: b.id })), updatedAt };
+    }
+    async function syncNow() {
+        if (!sbUser) return;
+        setCloud('กำลังซิงก์...');
+        const { data, error } = await sb.from(SB_TABLE).select('data, updated_at').maybeSingle();
+        if (error) return setCloud('ซิงก์ไม่สำเร็จ: ' + error.message);
+        const remoteT = data ? new Date(data.updated_at).getTime() : 0;
+        if (data && data.data && Array.isArray(data.data.accounts) && (!state.updatedAt || remoteT > state.updatedAt)) {
+            state = { ...state, ...data.data, updatedAt: remoteT };
+            if (!state.accounts.some(a => a.id === state.defaultId)) state.defaultId = state.accounts[0].id;
+            state.activeId = state.defaultId;
+            persistLocal();
+            await pullBgs();
+            renderAll(); if (document.getElementById('listOverlay').classList.contains('open')) renderList();
+            lastSync = new Date(); setCloud('✓ ดึงข้อมูลจากคลาวด์แล้ว');
+        } else {
+            await pushNow();
+        }
+    }
+    async function pushBgs() {
+        for (const b of bgList()) {
+            if (b.up === sbUser.id || !bgData[b.id]) continue;
+            const blob = await (await fetch(bgData[b.id])).blob();
+            const { error } = await sb.storage.from(SB_BUCKET).upload(bgPath(b.id), blob, { upsert: true, contentType: 'image/jpeg' });
+            if (!error) b.up = sbUser.id;
+        }
+    }
+    async function pullBgs() {
+        for (const b of bgList()) {
+            if (bgData[b.id]) continue;
+            const { data, error } = await sb.storage.from(SB_BUCKET).download(bgPath(b.id));
+            if (error || !data) continue;
+            bgData[b.id] = await new Promise(r => { const fr = new FileReader(); fr.onload = () => r(fr.result); fr.readAsDataURL(data); });
+            b.up = sbUser.id;
+        }
+        saveBgData(); persistLocal();
+    }
+    async function pushNow() {
+        if (!sbUser) return;
+        clearTimeout(pushTimer);
+        try {
+            await pushBgs();
+            persistLocal();
+            const { error } = await sb.from(SB_TABLE).upsert({ user_id: sbUser.id, data: cloudPayload(), updated_at: new Date(state.updatedAt || Date.now()).toISOString() });
+            if (error) return setCloud('บันทึกขึ้นคลาวด์ไม่สำเร็จ: ' + error.message);
+            lastSync = new Date(); setCloud('✓ บันทึกบนคลาวด์แล้ว');
+        } catch (e) { setCloud('ออฟไลน์ — จะซิงก์ใหม่ภายหลัง'); }
+    }
+    function schedulePush() { if (!sbUser) return; clearTimeout(pushTimer); pushTimer = setTimeout(pushNow, 1500); }
+
+    function renderCloud() {
+        const box = document.getElementById('cloudBox'); if (!box) return;
+        const inEl = document.getElementById('cloudIn'), outEl = document.getElementById('cloudOut');
+        inEl.hidden = !sbUser; outEl.hidden = !!sbUser || !sb;
+        if (sbUser) {
+            document.getElementById('cloudEmail').textContent = sbUser.email || '';
+            document.getElementById('cloudStatus').textContent = cloudMsg + (lastSync ? ` · ${lastSync.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })}` : '');
+        } else {
+            document.getElementById('cloudLoginMsg').textContent = cloudMsg;
+        }
+    }
+    async function cloudLogin(e) {
+        e.preventDefault();
+        const btn = document.getElementById('cloudLoginBtn'); btn.disabled = true; setCloud('');
+        const { error } = await sb.auth.signInWithPassword({ email: document.getElementById('cloudEmailIn').value.trim(), password: document.getElementById('cloudPass').value });
+        btn.disabled = false;
+        if (error) setCloud(error.message === 'Invalid login credentials' ? 'อีเมลหรือรหัสผ่านไม่ถูกต้อง' : 'เข้าสู่ระบบไม่สำเร็จ: ' + error.message);
+        else document.getElementById('cloudPass').value = '';
+    }
+
+    /* ================= export / share ================= */
+    async function exportBlob() {
+        try { await document.fonts.ready; } catch (e) { /* ignore */ }
+        const canvas = drawCard(activeAcc(), document.getElementById('amountInput').value);
+        return new Promise((res, rej) => canvas.toBlob(b => b ? res(b) : rej(new Error('blob failed')), 'image/png'));
+    }
+    function fileName() { const a = activeAcc(); return 'qr-' + (a.bank || 'pp').toLowerCase() + '.png'; }
+
+    function showPreview(blob) {
+        const url = URL.createObjectURL(blob);
+        document.getElementById('previewImg').src = url;
+        document.getElementById('previewOverlay').classList.add('open');
+        document.getElementById('previewClose').onclick = () => {
+            document.getElementById('previewOverlay').classList.remove('open');
+            URL.revokeObjectURL(url);
+        };
+    }
+    function downloadBlob(blob, name) {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url; a.download = name || fileName();
+        document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 3000);
+    }
+    const isIOSUA = () => /iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+    async function downloadQR() {
+        try {
+            const blob = await exportBlob();
+            if (isIOSUA()) { showPreview(blob); showToast('กดค้างที่รูปเพื่อบันทึก'); return; }
+            downloadBlob(blob); showToast('✓ บันทึกรูปแล้ว');
+        } catch (e) { console.error(e); showToast('บันทึกไม่สำเร็จ ลองอีกครั้ง'); }
+    }
+    async function shareQR() {
+        try {
+            const blob = await exportBlob();
+            const file = new File([blob], fileName(), { type: 'image/png' });
+            if (navigator.share && navigator.canShare?.({ files: [file] })) {
+                await navigator.share({ files: [file], title: 'QR รับเงิน' });
+                return;
+            }
+            if (isIOSUA()) { showPreview(blob); showToast('บันทึกรูปแล้วแชร์ LINE ได้'); return; }
+            downloadBlob(blob); showToast('บันทึกรูปแล้ว — เปิด LINE แนบได้เลย');
+        } catch (e) {
+            if (e.name !== 'AbortError') { console.error(e); showToast('แชร์ไม่สำเร็จ ลองกดบันทึกรูปแทน'); }
+        }
+    }
+
+    function shareText() {
+        const acc = activeAcc(), b = bankOf(acc);
+        const lines = ['💰 โอนเงินเข้าบัญชี'];
+        if (acc.bank !== 'PP') lines.push('🏦 ' + b.name);
+        lines.push('👤 ' + (acc.name || '-'));
+        if (acc.type === 'phone') lines.push('📱 พร้อมเพย์ ' + fmtPhone(acc.ppId));
+        if (acc.type === 'idcard') lines.push('🪪 พร้อมเพย์ ' + maskId(acc.ppId));
+        if (acc.accNo) lines.push('🔢 เลขบัญชี ' + fmtAccNo(acc.accNo));
+        const amt = acc.type === 'fixed' ? null : fmtAmount(document.getElementById('amountInput').value);
+        if (amt) lines.push('💵 ยอด ฿' + amt);
+        return lines.join('\n');
+    }
+    function lineText() {
+        const acc = activeAcc();
+        if (acc.type === 'idcard' && !acc.accNo) showToast('เลขบัตรถูกซ่อนบางหลัก — ส่งรูป QR จะดีกว่า');
+        window.open('https://line.me/R/share?text=' + encodeURIComponent(shareText()), '_blank');
+    }
+
+    /* ================= init ================= */
+    document.addEventListener('DOMContentLoaded', () => {
+        fillBankSelect();
+        renderAll();
+        // วาดใหม่เมื่อฟอนต์ Prompt โหลดเสร็จ
+        document.fonts?.load('700 40px Prompt').then(() => renderCard()).catch(() => {});
+
+        document.getElementById('amountInput').addEventListener('input', () => {
+            clearTimeout(window._t); window._t = setTimeout(renderCard, 250);
+        });
+        document.getElementById('settingsBtn').addEventListener('click', () => {
+            renderList(); document.getElementById('listOverlay').classList.add('open');
+        });
+        document.getElementById('addAccBtn').addEventListener('click', () => openEditor(null));
+        document.getElementById('exportBtn').addEventListener('click', exportBackup);
+        document.getElementById('importFile').addEventListener('change', importBackup);
+        requestPersist();
+        document.getElementById('bgFile').addEventListener('change', onBgFile);
+        document.getElementById('cloudOut').addEventListener('submit', cloudLogin);
+        document.getElementById('cloudSyncBtn').addEventListener('click', syncNow);
+        document.getElementById('cloudLogoutBtn').addEventListener('click', async () => { await pushNow(); await sb.auth.signOut(); lastSync = null; setCloud(''); });
+        initCloud();
+        document.querySelectorAll('#typeSeg button').forEach(b => b.addEventListener('click', () => setType(b.dataset.type)));
+        document.getElementById('fQrFile').addEventListener('change', onQrFile);
+        document.getElementById('fLogo').addEventListener('change', onLogoFile);
+        document.getElementById('logoClear').addEventListener('click', () => { editing.logo = ''; document.getElementById('fLogo').value = ''; updateLogoPreview(); });
+        document.getElementById('fBank').addEventListener('change', updateLogoPreview);
+        document.getElementById('saveAccBtn').addEventListener('click', saveEditor);
+        document.querySelectorAll('[data-close]').forEach(b => b.addEventListener('click', closeAll));
+        document.querySelectorAll('.overlay').forEach(o => o.addEventListener('click', e => { if (e.target === o) closeAll(); }));
+        document.getElementById('downloadBtn').addEventListener('click', downloadQR);
+        document.getElementById('shareBtn').addEventListener('click', shareQR);
+        document.getElementById('lineTextBtn').addEventListener('click', lineText);
+
+        initPWA();
+    });
+
+    function isStandalone() { return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true; }
+    function isIOS() { return /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1); }
+    let deferredInstall = null;
+
+    function initPWA() {
+        if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(() => {});
+        if (isStandalone()) return;
+        const banner = document.getElementById('installBanner');
+        let dismissed = null; try { dismissed = localStorage.getItem('pwa-dismissed'); } catch (e) { /* ignore */ }
+        const installBtn = document.getElementById('installBtn');
+        window.addEventListener('beforeinstallprompt', e => {
+            e.preventDefault(); deferredInstall = e;
+            installBtn.style.display = 'flex';
+            if (!dismissed) banner.classList.add('show');
+        });
+        if (isIOS() && !dismissed) installBtn.style.display = 'flex';
+        const go = async () => {
+            if (deferredInstall) { deferredInstall.prompt(); await deferredInstall.userChoice; deferredInstall = null; banner.classList.remove('show'); }
+            else document.getElementById('iosInstallOverlay').classList.add('open');
+        };
+        document.getElementById('installGo').addEventListener('click', go);
+        installBtn.addEventListener('click', go);
+        document.getElementById('installDismiss').addEventListener('click', () => {
+            banner.classList.remove('show');
+            try { localStorage.setItem('pwa-dismissed', '1'); } catch (e) { /* ignore */ }
+        });
+    }
     </script>
 </body>
 </html>
