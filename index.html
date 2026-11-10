@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
-    <meta name="theme-color" content="#0D1015">
+    <meta name="theme-color" content="#F3F6FB">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -20,16 +20,21 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
     <style>
         :root {
-            --gold: #D4A24C;
-            --gold-2: #F0C878;
-            --pp-blue: #D4A24C;
-            --text: #E9EDF3;
-            --muted: #8D97A6;
-            --line: #2E3642;
-            --bg: #0D1015;
-            --surface: #181D25;
-            --surface-2: #222934;
-            --danger: #FF5A5A;
+            --primary: #1A56DB;
+            --primary-2: #3B82F6;
+            --primary-soft: #EAF1FF;
+            --gold: #1A56DB;
+            --gold-2: #3B82F6;
+            --pp-blue: #1A56DB;
+            --text: #0F172A;
+            --muted: #64748B;
+            --line: #E2E8F0;
+            --bg: #F3F6FB;
+            --surface: #FFFFFF;
+            --surface-2: #F8FAFC;
+            --danger: #DC2626;
+            --ok: #16A34A;
+            --shadow: 0 1px 2px rgba(15,23,42,.04), 0 4px 14px rgba(15,23,42,.06);
         }
         * { box-sizing: border-box; margin: 0; padding: 0; }
         [hidden] { display: none !important; }
@@ -39,30 +44,28 @@
         }
         body {
             font-family: 'Prompt', sans-serif; color: var(--text); -webkit-tap-highlight-color: transparent;
-            background:
-                radial-gradient(120% 60% at 50% 0%, #1D2430 0%, transparent 60%),
-                repeating-linear-gradient(45deg, rgba(255,255,255,.015) 0 2px, transparent 2px 6px),
-                var(--bg);
+            background: radial-gradient(120% 50% at 50% 0%, #E3ECFF 0%, rgba(227,236,255,0) 70%), var(--bg);
         }
         button { font-family: inherit; }
         svg { fill: currentColor; }
+        .ic { width: 18px; height: 18px; flex-shrink: 0; }
 
         .app {
-            height: 100dvh; display: flex; flex-direction: column; gap: 8px;
-            padding: max(env(safe-area-inset-top), 6px) max(env(safe-area-inset-right), 12px)
-                     max(env(safe-area-inset-bottom), 10px) max(env(safe-area-inset-left), 12px);
+            height: 100dvh; display: flex; flex-direction: column; gap: 10px;
+            padding: max(env(safe-area-inset-top), 8px) max(env(safe-area-inset-right), 14px)
+                     max(env(safe-area-inset-bottom), 12px) max(env(safe-area-inset-left), 14px);
             max-width: 520px; margin: 0 auto;
         }
 
         .topbar { display: flex; align-items: center; justify-content: space-between; min-height: 44px; }
         .brand { display: flex; align-items: center; gap: 10px; }
-        .brand img { width: 32px; height: 32px; border-radius: 9px; box-shadow: 0 0 0 1px rgba(212,162,76,.35); }
-        .topbar-title { font-weight: 700; font-size: 18px; letter-spacing: .3px;
-            background: linear-gradient(90deg, var(--gold-2), var(--gold)); -webkit-background-clip: text; background-clip: text; color: transparent; }
-        .topbar-actions { display: flex; gap: 6px; }
+        .brand img { width: 34px; height: 34px; border-radius: 10px; box-shadow: 0 2px 8px rgba(26,86,219,.25); }
+        .topbar-title { font-weight: 700; font-size: 19px; color: var(--text); letter-spacing: .2px; }
+        .topbar-title small { display: block; font-size: 11px; font-weight: 500; color: var(--muted); letter-spacing: 0; margin-top: -2px; }
+        .topbar-actions { display: flex; gap: 8px; }
         .icon-btn {
             width: 40px; height: 40px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface);
-            color: #C9D1DC; display: flex; align-items: center; justify-content: center; cursor: pointer;
+            color: #334155; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: var(--shadow);
         }
         .icon-btn svg { width: 22px; height: 22px; }
 
@@ -70,12 +73,12 @@
         .acc-row::-webkit-scrollbar { display: none; }
         .acc-chip {
             display: flex; align-items: center; gap: 8px; flex-shrink: 0;
-            padding: 6px 14px 6px 6px; border-radius: 999px; border: 1.5px solid var(--line);
-            background: var(--surface); cursor: pointer; font-size: 14px; font-weight: 500; color: #C9D1DC; max-width: 220px;
+            padding: 5px 14px 5px 5px; border-radius: 999px; border: 1.5px solid var(--line);
+            background: var(--surface); cursor: pointer; font-size: 14px; font-weight: 500; color: #334155; max-width: 230px;
         }
         .acc-chip span.lbl { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .acc-chip.active { border-color: var(--gold); color: #fff; box-shadow: 0 0 0 3px rgba(212,162,76,.15); }
-        .acc-chip.add { padding: 6px 14px; color: var(--gold); border-style: dashed; }
+        .acc-chip.active { border-color: var(--primary); background: var(--primary-soft); color: var(--primary); box-shadow: 0 2px 10px rgba(26,86,219,.15); }
+        .acc-chip.add { padding: 5px 14px; color: var(--primary); border-style: dashed; background: transparent; }
         .badge {
             width: 30px; height: 30px; border-radius: 50%; flex-shrink: 0; display: flex;
             align-items: center; justify-content: center; color: #fff; font-weight: 700; font-size: 11px;
@@ -85,165 +88,172 @@
         .stage { flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; }
         .stage canvas {
             max-width: 100%; max-height: 100%; width: auto; height: auto; border-radius: 18px;
-            box-shadow: 0 14px 40px rgba(0,0,0,.55), 0 0 0 1px rgba(255,255,255,.04);
+            box-shadow: 0 10px 30px rgba(15,23,42,.14), 0 0 0 1px rgba(15,23,42,.04);
         }
 
         .controls { display: flex; flex-direction: column; gap: 8px; flex-shrink: 0; }
         .amount-field {
-            display: flex; align-items: center; gap: 8px; background: var(--surface); border: 1px solid var(--line);
-            border-radius: 14px; padding: 0 14px; height: 48px;
+            display: flex; align-items: center; gap: 8px; background: var(--surface); border: 1.5px solid var(--line);
+            border-radius: 14px; padding: 0 14px; height: 50px; box-shadow: var(--shadow);
         }
-        .amount-field:focus-within { border-color: var(--gold); }
-        .amount-field span { font-weight: 700; color: var(--gold); font-size: 18px; }
+        .amount-field:focus-within { border-color: var(--primary); box-shadow: 0 0 0 4px rgba(26,86,219,.12); }
+        .amount-field span { font-weight: 700; color: var(--primary); font-size: 18px; }
         .amount-field input {
             flex: 1; border: none; outline: none; font-family: inherit; font-size: 17px; background: transparent; min-width: 0; color: var(--text);
         }
-        .amount-field input::placeholder { color: #5F6978; }
+        .amount-field input::placeholder { color: #94A3B8; }
         .fixed-note {
-            display: none; background: rgba(212,162,76,.1); border: 1px solid rgba(212,162,76,.3); color: var(--gold-2);
+            display: none; background: #FFF7E6; border: 1px solid #FDE2B3; color: #92580B;
             border-radius: 14px; padding: 12px 14px; font-size: 13px; line-height: 1.4;
         }
-        .frame-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 10px; }
-        .frame-grid:empty { display: none; }
-        .frame-tile { position: relative; aspect-ratio: 9 / 16; border-radius: 10px; background: var(--surface) center/cover; border: 1px solid var(--line); overflow: hidden; }
-        .frame-tile .lbl { position: absolute; left: 0; right: 0; bottom: 0; font-size: 11px; text-align: center; background: rgba(0,0,0,.6); color: #fff; line-height: 20px; }
-        .frame-tile .cl { position: absolute; top: 3px; left: 4px; font-size: 13px; }
-        .frame-tile .x { position: absolute; top: 3px; right: 3px; border: none; background: rgba(0,0,0,.65); color: #fff; font-size: 11px; padding: 2px 6px; border-radius: 6px; cursor: pointer; font-family: inherit; }
-        .frame-tile .x.sure { background: var(--danger); }
         .theme-row { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; padding: 3px; }
         .theme-row::-webkit-scrollbar { display: none; }
-        .cat-row { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; }
-        .cat-row::-webkit-scrollbar { display: none; }
-        .cat-pill {
-            flex-shrink: 0; border: 1px solid var(--line); background: transparent; color: var(--muted);
-            border-radius: 999px; padding: 5px 12px; font-size: 13px; cursor: pointer;
-        }
-        .cat-pill.active { background: var(--gold); border-color: var(--gold); color: #1A1408; font-weight: 600; }
         .theme-dot {
-            flex-shrink: 0; width: 64px; height: 46px; border-radius: 12px; border: 2px solid #2A313C; cursor: pointer;
+            flex-shrink: 0; width: 64px; height: 46px; border-radius: 12px; border: 2px solid var(--surface); cursor: pointer;
             background-size: cover; background-position: center; position: relative; overflow: hidden; padding: 0;
+            box-shadow: 0 0 0 1px var(--line), var(--shadow);
         }
         .theme-dot span {
             position: absolute; left: 0; right: 0; bottom: 0; font-size: 10px; line-height: 1.6; color: #fff;
-            background: rgba(0,0,0,.55); text-align: center; white-space: nowrap; overflow: hidden;
+            background: rgba(15,23,42,.55); text-align: center; white-space: nowrap; overflow: hidden;
         }
-        .theme-dot.active { border-color: var(--gold); box-shadow: 0 0 0 3px rgba(212,162,76,.25); }
+        .theme-dot.active { box-shadow: 0 0 0 2px var(--primary), 0 4px 12px rgba(26,86,219,.25); }
 
         .actions { display: grid; grid-template-columns: 1fr 1.4fr; gap: 10px; flex-shrink: 0; }
         .btn {
-            height: 50px; border-radius: 14px; border: none; font-size: 16px; font-weight: 600;
+            height: 52px; border-radius: 14px; border: none; font-size: 16px; font-weight: 600;
             display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer;
         }
         .btn svg { width: 20px; height: 20px; }
-        .btn-ghost { background: var(--surface); color: var(--text); border: 1px solid var(--line); }
-        .btn-line { background: #06C755; color: #fff; box-shadow: 0 6px 18px rgba(6,199,85,.25); }
+        .btn-ghost { background: var(--surface); color: var(--primary); border: 1.5px solid #C7D7FA; box-shadow: var(--shadow); }
+        .btn-line { background: #06C755; color: #fff; box-shadow: 0 6px 16px rgba(6,199,85,.28); }
         .btn-line .line-ic { width: 24px; height: 24px; }
         .btn-text {
-            grid-column: 1 / -1; height: 40px; border-radius: 12px; border: 1px dashed #2F5E3F; background: transparent;
-            color: #4BE08A; font-size: 14px; display: flex; align-items: center; justify-content: center; gap: 6px; cursor: pointer;
+            grid-column: 1 / -1; height: 42px; border-radius: 12px; border: 1px solid #BFEBD0; background: #F0FBF4;
+            color: #0E8A43; font-size: 14px; font-weight: 500; display: flex; align-items: center; justify-content: center; gap: 6px; cursor: pointer;
         }
 
         .overlay {
-            position: fixed; inset: 0; background: rgba(0,0,0,.6); z-index: 100;
+            position: fixed; inset: 0; background: rgba(15,23,42,.38); z-index: 100;
             display: flex; align-items: flex-end; justify-content: center;
             opacity: 0; pointer-events: none; transition: opacity .2s;
         }
         .overlay.open { opacity: 1; pointer-events: auto; }
         .sheet {
-            background: var(--surface); width: 100%; max-width: 520px; border-radius: 22px 22px 0 0; border-top: 1px solid var(--line);
-            max-height: 92dvh; display: flex; flex-direction: column;
+            background: var(--bg); width: 100%; max-width: 520px; border-radius: 22px 22px 0 0;
+            max-height: 92dvh; display: flex; flex-direction: column; box-shadow: 0 -10px 40px rgba(15,23,42,.18);
             transform: translateY(30px); transition: transform .2s;
             padding-bottom: max(env(safe-area-inset-bottom), 12px);
         }
         .overlay.open .sheet { transform: none; }
-        .sheet-handle { width: 40px; height: 4px; background: #3A4350; border-radius: 4px; margin: 10px auto 0; }
-        .sheet-header { display: flex; align-items: center; justify-content: space-between; padding: 8px 16px 6px; }
+        .sheet-handle { width: 40px; height: 4px; background: #CBD5E1; border-radius: 4px; margin: 10px auto 0; }
+        .sheet-header { display: flex; align-items: center; justify-content: space-between; padding: 8px 16px 8px; }
         .sheet-header h3 { font-size: 18px; }
-        .sheet-header .icon-btn { background: var(--surface-2); }
+        .sheet-header .icon-btn { box-shadow: none; }
         .sheet-body { overflow-y: auto; padding: 4px 16px 16px; -webkit-overflow-scrolling: touch; }
 
         .acc-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
-        .acc-item { display: flex; flex-direction: column; gap: 8px; padding: 10px 12px; border-radius: 14px; background: var(--surface-2); border: 1px solid transparent; }
-        .acc-item.is-default { border-color: rgba(212,162,76,.5); }
+        .acc-item { display: flex; flex-direction: column; gap: 8px; padding: 12px; border-radius: 16px; background: var(--surface); border: 1.5px solid var(--line); box-shadow: var(--shadow); }
+        .acc-item.is-default { border-color: #A9C3F7; }
         .acc-top { display: flex; align-items: center; gap: 12px; }
         .acc-tools { display: flex; align-items: center; gap: 6px; }
-        .acc-tools .def-tag { flex: 1; font-size: 12px; color: var(--gold); }
-        .mini-btn:disabled { opacity: .3; }
-        .star-btn { border: none; background: none; font-size: 24px; color: var(--gold); cursor: pointer; width: 36px; height: 36px; }
-        .backup-box { margin-top: 16px; padding: 12px; border-radius: 14px; background: var(--bg); border: 1px solid var(--line); }
-        .backup-box b { font-size: 14px; }
-        .backup-box p { font-size: 12.5px; color: var(--muted); margin: 6px 0 10px; line-height: 1.55; }
-        .backup-box p b { font-size: 12.5px; color: var(--text); }
-        .backup-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-        .backup-btns .mini-btn { height: 40px; }
-        .cloud-form { display: flex; flex-direction: column; gap: 8px; }
-        .cloud-form input { height: 44px; border: 1.5px solid var(--line); border-radius: 12px; padding: 0 12px; background: var(--surface); color: var(--text); font-family: inherit; font-size: 16px; outline: none; }
-        .cloud-form input:focus { border-color: var(--gold); }
-        .cloud-form .err { color: var(--danger); margin: 0; }
-        .theme-dot.tool { background: var(--surface); color: var(--gold); display: flex; flex-direction: column; align-items: center; justify-content: center; border-style: dashed; }
-        .theme-dot.tool b { font-size: 18px; line-height: 1; margin-top: -8px; }
-        .theme-dot .x { position: absolute; top: 0; right: 0; font-style: normal; background: rgba(0,0,0,.65); color: #fff; font-size: 12px; padding: 0 6px; border-radius: 0 0 0 8px; line-height: 18px; }
-        .theme-dot .x.sure { background: var(--danger); }
-        .acc-item .badge { width: 40px; height: 40px; font-size: 13px; }
+        .acc-tools .def-tag { flex: 1; }
+        .acc-tools .def-tag em { font-style: normal; font-size: 11.5px; font-weight: 600; color: var(--primary); background: var(--primary-soft); padding: 3px 9px; border-radius: 999px; }
+        .acc-item .badge { width: 42px; height: 42px; font-size: 13px; }
         .acc-item .meta { flex: 1; min-width: 0; }
         .acc-item .meta b { display: block; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .acc-item .meta small { color: var(--muted); font-size: 12.5px; }
         .mini-btn {
             border: 1px solid var(--line); background: var(--surface); border-radius: 10px; height: 34px; padding: 0 10px;
-            font-size: 13px; color: #C9D1DC; cursor: pointer; flex-shrink: 0;
+            font-size: 13px; color: #334155; cursor: pointer; flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; gap: 6px;
         }
+        .mini-btn svg { width: 18px; height: 18px; }
         .mini-btn.del { color: var(--danger); }
         .mini-btn.confirm { background: var(--danger); color: #fff; border-color: var(--danger); }
+        .mini-btn:disabled { opacity: .35; }
+        .star-btn { border: none; background: none; color: #CBD5E1; cursor: pointer; width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; border-radius: 10px; }
+        .star-btn svg { width: 26px; height: 26px; }
+        .star-btn.on { color: #F5A524; }
+        .backup-box { margin-top: 14px; padding: 14px; border-radius: 16px; background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow); }
+        .box-title { display: flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 600; }
+        .box-title .ic { color: var(--primary); width: 20px; height: 20px; }
+        .backup-box p { font-size: 12.5px; color: var(--muted); margin: 6px 0 10px; line-height: 1.55; }
+        .backup-box p b { color: var(--text); }
+        .backup-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .backup-btns .mini-btn { height: 42px; }
+        .mini-btn.primary { background: var(--primary); border-color: var(--primary); color: #fff; }
+        .cloud-form { display: flex; flex-direction: column; gap: 8px; }
+        .cloud-form input { height: 46px; border: 1.5px solid var(--line); border-radius: 12px; padding: 0 12px; background: var(--surface-2); color: var(--text); font-family: inherit; font-size: 16px; outline: none; }
+        .cloud-form input:focus { border-color: var(--primary); background: #fff; }
+        .cloud-form .err { color: var(--danger); margin: 0; }
+        .cloud-user { display: flex; align-items: center; gap: 10px; margin: 8px 0 12px; }
+        .cloud-user .av { width: 36px; height: 36px; border-radius: 50%; background: var(--primary-soft); color: var(--primary); display: flex; align-items: center; justify-content: center; }
+        .cloud-user .av svg { width: 20px; height: 20px; }
+        .cloud-user b { display: block; font-size: 14px; }
+        .cloud-user small { color: var(--muted); font-size: 12px; }
 
-        .seg { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; background: var(--bg); padding: 4px; border-radius: 12px; }
-        .seg button { border: none; background: transparent; border-radius: 9px; padding: 9px 4px; font-size: 13px; cursor: pointer; color: var(--muted); }
-        .seg button.active { background: var(--surface-2); color: var(--gold-2); font-weight: 600; box-shadow: inset 0 0 0 1px rgba(212,162,76,.4); }
+        .frame-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 10px; }
+        .frame-grid:empty { display: none; }
+        .frame-tile { position: relative; aspect-ratio: 9 / 16; border-radius: 10px; background: var(--surface-2) center/cover; border: 1px solid var(--line); overflow: hidden; }
+        .frame-tile .lbl { position: absolute; left: 0; right: 0; bottom: 0; font-size: 11px; text-align: center; background: rgba(15,23,42,.55); color: #fff; line-height: 20px; }
+        .frame-tile .cl { position: absolute; top: 4px; left: 4px; width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: #fff; box-shadow: var(--shadow); }
+        .frame-tile .cl svg { width: 14px; height: 14px; }
+        .frame-tile .cl.on { color: var(--ok); } .frame-tile .cl.off { color: #94A3B8; }
+        .frame-tile .x { position: absolute; top: 4px; right: 4px; border: none; background: rgba(255,255,255,.95); color: var(--danger); font-size: 11px; padding: 2px 7px; border-radius: 6px; cursor: pointer; font-family: inherit; box-shadow: var(--shadow); }
+        .frame-tile .x.sure { background: var(--danger); color: #fff; }
+
+        .seg { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; background: #E8EDF5; padding: 4px; border-radius: 14px; }
+        .seg button { border: none; background: transparent; border-radius: 10px; padding: 9px 4px; font-size: 12.5px; cursor: pointer; color: var(--muted); display: flex; flex-direction: column; align-items: center; gap: 3px; line-height: 1.25; }
+        .seg button svg { width: 20px; height: 20px; }
+        .seg button.active { background: #fff; color: var(--primary); font-weight: 600; box-shadow: var(--shadow); }
 
         .field { margin-top: 12px; }
-        .field label { display: block; font-size: 13px; color: var(--muted); margin-bottom: 5px; font-weight: 500; }
+        .field label { display: block; font-size: 13px; color: #475569; margin-bottom: 5px; font-weight: 500; }
         .field input, .field select {
             width: 100%; height: 46px; border: 1.5px solid var(--line); border-radius: 12px;
-            padding: 0 12px; font-family: inherit; font-size: 16px; background: var(--bg); outline: none; color: var(--text);
+            padding: 0 12px; font-family: inherit; font-size: 16px; background: var(--surface); outline: none; color: var(--text);
         }
-        .field input:focus, .field select:focus { border-color: var(--gold); }
+        .field input:focus, .field select:focus { border-color: var(--primary); box-shadow: 0 0 0 4px rgba(26,86,219,.1); }
         .logo-pick { display: flex; align-items: center; gap: 8px; }
-        .logo-pick .badge { width: 44px; height: 44px; font-size: 13px; }
-        .field-hint { font-size: 12px; color: #6B7584; margin-top: 4px; }
+        .logo-pick .badge { width: 44px; height: 44px; font-size: 13px; box-shadow: 0 0 0 1px var(--line); }
+        .field-hint { font-size: 12px; color: #94A3B8; margin-top: 4px; }
 
-        .upload-box { border: 2px dashed #3A4350; border-radius: 14px; padding: 16px; text-align: center; cursor: pointer; color: var(--muted); font-size: 14px; display: block; }
-        .upload-box.ok { border-color: #2fa36b; background: rgba(47,163,107,.08); color: #5BD69A; }
-        .upload-box.err { border-color: var(--danger); background: rgba(255,90,90,.08); color: var(--danger); }
+        .upload-box { border: 2px dashed #CBD5E1; border-radius: 14px; padding: 16px; text-align: center; cursor: pointer; color: var(--muted); font-size: 14px; display: block; background: var(--surface); }
+        .upload-box.ok { border-color: #86D3A3; background: #F0FBF4; color: #0E8A43; }
+        .upload-box.err { border-color: #F5A3A3; background: #FEF2F2; color: var(--danger); }
         .upload-box img { max-width: 120px; max-height: 120px; display: block; margin: 0 auto 8px; border-radius: 8px; }
 
         .btn-save {
-            width: 100%; height: 50px; border: none; border-radius: 14px; background: linear-gradient(135deg, var(--gold-2), var(--gold));
-            color: #1A1408; font-size: 16px; font-weight: 700; margin-top: 18px; cursor: pointer;
+            width: 100%; height: 50px; border: none; border-radius: 14px; background: var(--primary);
+            color: #fff; font-size: 16px; font-weight: 600; margin-top: 18px; cursor: pointer; box-shadow: 0 6px 16px rgba(26,86,219,.28);
         }
         .btn-add {
-            width: 100%; height: 48px; border: 1.5px dashed var(--gold); border-radius: 14px;
-            background: rgba(212,162,76,.06); color: var(--gold); font-size: 15px; font-weight: 600; cursor: pointer;
+            width: 100%; height: 48px; border: 1.5px dashed #A9C3F7; border-radius: 14px;
+            background: var(--primary-soft); color: var(--primary); font-size: 15px; font-weight: 600; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; gap: 6px;
         }
 
         .toast {
             position: fixed; left: 50%; bottom: 120px; transform: translateX(-50%) translateY(20px);
-            background: #2A313C; color: #fff; padding: 10px 18px; border-radius: 12px; border: 1px solid #3A4350;
+            background: #0F172A; color: #fff; padding: 10px 18px; border-radius: 12px;
             font-size: 14px; opacity: 0; pointer-events: none; transition: all .25s; z-index: 300; white-space: nowrap;
+            box-shadow: 0 8px 24px rgba(15,23,42,.25);
         }
         .toast.show { opacity: 1; transform: translateX(-50%); }
 
         .preview-overlay {
-            position: fixed; inset: 0; background: rgba(0,0,0,.92); z-index: 200; display: none;
+            position: fixed; inset: 0; background: rgba(15,23,42,.9); z-index: 200; display: none;
             flex-direction: column; align-items: center; justify-content: center; gap: 16px; padding: 24px;
         }
         .preview-overlay.open { display: flex; }
         .preview-overlay img { max-width: 100%; max-height: 70dvh; border-radius: 12px; }
         .preview-hint { color: #fff; text-align: center; font-size: 15px; line-height: 1.5; }
-        .preview-close { border: none; background: var(--gold); color: #1A1408; font-size: 16px; font-weight: 700; padding: 12px 32px; border-radius: 12px; cursor: pointer; }
+        .preview-close { border: none; background: #fff; color: var(--primary); font-size: 16px; font-weight: 600; padding: 12px 32px; border-radius: 12px; cursor: pointer; }
 
         .install-banner {
             display: none; position: fixed; top: max(env(safe-area-inset-top), 8px); left: 10px; right: 10px;
-            background: var(--surface-2); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px;
-            box-shadow: 0 8px 24px rgba(0,0,0,.5); z-index: 150; align-items: center; gap: 8px; max-width: 500px; margin: 0 auto;
+            background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 10px 12px;
+            box-shadow: 0 8px 24px rgba(15,23,42,.14); z-index: 150; align-items: center; gap: 8px; max-width: 500px; margin: 0 auto;
         }
         .install-banner.show { display: flex; }
         .install-banner img { width: 36px; height: 36px; border-radius: 8px; }
@@ -251,8 +261,8 @@
         .install-banner-text span { color: var(--muted); font-size: 12px; }
         .install-banner-btns { display: flex; gap: 6px; }
         .install-go, .install-dismiss { border: none; border-radius: 9px; padding: 7px 10px; font-size: 13px; cursor: pointer; }
-        .install-go { background: var(--gold); color: #1A1408; font-weight: 600; }
-        .install-dismiss { background: var(--surface); color: var(--muted); }
+        .install-go { background: var(--primary); color: #fff; font-weight: 600; }
+        .install-dismiss { background: #F1F5F9; color: var(--muted); }
         .ios-steps { font-size: 14px; line-height: 1.7; }
         .ios-steps ol { padding-left: 20px; }
     </style>
@@ -260,7 +270,7 @@
 <body>
     <div class="app">
         <div class="topbar">
-            <div class="brand"><img src="icon-192.png" alt=""><span class="topbar-title">QR รับเงิน</span></div>
+            <div class="brand"><img src="icon-192.png" alt=""><span class="topbar-title">QR รับเงิน<small>PromptPay · Thai QR</small></span></div>
             <div class="topbar-actions">
                 <button class="icon-btn" id="installBtn" aria-label="ติดตั้งแอป" style="display:none;">
                     <svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
@@ -294,7 +304,7 @@
                 <svg class="line-ic" viewBox="0 0 24 24"><path d="M12 2.5C6.2 2.5 1.5 6.3 1.5 11c0 4.2 3.7 7.7 8.8 8.4.3.1.8.2.9.5.1.3.1.7 0 1l-.2.9c-.1.3-.2 1 .9.6 1.1-.5 6-3.5 8.2-6.1 1.5-1.6 2.3-3.3 2.3-5.3 0-4.7-4.7-8.5-10.4-8.5zM8.3 13.6H6.2c-.3 0-.6-.3-.6-.6V8.8c0-.3.3-.6.6-.6s.6.3.6.6v3.6h1.5c.3 0 .6.3.6.6s-.3.6-.6.6zm2.2-.6c0 .3-.3.6-.6.6s-.6-.3-.6-.6V8.8c0-.3.3-.6.6-.6s.6.3.6.6V13zm5 0c0 .3-.2.5-.4.6h-.2c-.2 0-.4-.1-.5-.2l-2.1-2.9V13c0 .3-.3.6-.6.6s-.6-.3-.6-.6V8.8c0-.3.2-.5.4-.6h.2c.2 0 .4.1.5.3l2.1 2.9V8.8c0-.3.3-.6.6-.6s.6.3.6.6V13zm3.4-2.7c.3 0 .6.3.6.6s-.3.6-.6.6h-1.5v.9h1.5c.3 0 .6.3.6.6s-.3.6-.6.6h-2.1c-.3 0-.6-.3-.6-.6V8.8c0-.3.3-.6.6-.6h2.1c.3 0 .6.3.6.6s-.3.6-.6.6h-1.5v.9h1.5z"/></svg>
                 ส่งรูปเข้า LINE
             </button>
-            <button class="btn-text" id="lineTextBtn">💬 ส่งเลขบัญชีเป็นข้อความทาง LINE</button>
+            <button class="btn-text" id="lineTextBtn"><svg class="ic" viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 9h12v2H6V9zm8 5H6v-2h8v2zm4-6H6V6h12v2z"/></svg> ส่งเลขบัญชีเป็นข้อความทาง LINE</button>
         </div>
     </div>
 
@@ -308,19 +318,19 @@
             </div>
             <div class="sheet-body">
                 <div class="acc-list" id="accList"></div>
-                <button class="btn-add" id="addAccBtn">+ เพิ่มบัญชี</button>
-                <p class="field-hint" style="margin-top:8px">แตะ ☆ เพื่อตั้งบัญชีที่เปิดแอปแล้วแสดงก่อน · ▲▼ สลับลำดับ</p>
+                <button class="btn-add" id="addAccBtn"><svg class="ic" viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>เพิ่มบัญชี</button>
+                <p class="field-hint" style="margin-top:8px">แตะดาวเพื่อตั้งบัญชีที่แสดงก่อนเมื่อเปิดแอป · ใช้ลูกศรสลับลำดับ</p>
                 <div class="backup-box">
-                    <b>🖼 กรอบสลิปของฉัน</b>
+                    <div class="box-title"><svg class="ic" viewBox="0 0 24 24"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>กรอบสลิปของฉัน</div>
                     <p id="frameInfo"></p>
                     <div class="frame-grid" id="frameGrid"></div>
                     <div class="backup-btns">
-                        <button class="mini-btn" id="layoutBtn" type="button">📐 โหลด Layout</button>
-                        <button class="mini-btn" id="importFrameBtn" type="button">＋ นำเข้ากรอบ</button>
+                        <button class="mini-btn" id="layoutBtn" type="button"><svg class="ic" viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>โหลด Layout</button>
+                        <button class="mini-btn primary" id="importFrameBtn" type="button"><svg class="ic" viewBox="0 0 24 24"><path d="M9 16h6v-6h4l-7-7-7 7h4v6zm-4 2h14v2H5v-2z"/></svg>นำเข้ากรอบ</button>
                     </div>
                 </div>
                 <div class="backup-box cloud" id="cloudBox">
-                    <b>☁️ เก็บบนคลาวด์ (Supabase)</b>
+                    <div class="box-title"><svg class="ic" viewBox="0 0 24 24"><path d="M19.35 10.04A7.49 7.49 0 0012 4C9.11 4 6.6 5.64 5.35 8.04A5.994 5.994 0 000 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96z"/></svg>เก็บบนคลาวด์ (Supabase)</div>
                     <form id="cloudOut" class="cloud-form" hidden>
                         <p>ล็อกอินด้วยบัญชีเดียวกับ PuiHome&amp;Tax — บัญชี, QR, โลโก้ และพื้นหลังจะซิงก์ทุกเครื่อง</p>
                         <input type="email" id="cloudEmailIn" placeholder="อีเมล" autocomplete="username" required>
@@ -329,10 +339,10 @@
                         <p class="err" id="cloudLoginMsg"></p>
                     </form>
                     <div id="cloudIn" hidden>
-                        <p>👤 <span id="cloudEmail"></span><br><span id="cloudStatus"></span></p>
+                        <div class="cloud-user"><span class="av"><svg class="" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg></span><div><b id="cloudEmail"></b><small id="cloudStatus"></small></div></div>
                         <div class="backup-btns">
-                            <button class="mini-btn" id="cloudSyncBtn" type="button">🔄 ซิงก์ตอนนี้</button>
-                            <button class="mini-btn" id="cloudLogoutBtn" type="button">ออกจากระบบ</button>
+                            <button class="mini-btn" id="cloudSyncBtn" type="button"><svg class="ic" viewBox="0 0 24 24"><path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46A7.93 7.93 0 0020 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74A7.93 7.93 0 004 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z"/></svg>ซิงก์ตอนนี้</button>
+                            <button class="mini-btn" id="cloudLogoutBtn" type="button"><svg class="ic" viewBox="0 0 24 24"><path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5-5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/></svg>ออกจากระบบ</button>
                         </div>
                     </div>
                 </div>
@@ -351,9 +361,9 @@
             </div>
             <div class="sheet-body">
                 <div class="seg" id="typeSeg">
-                    <button data-type="phone">📱 พร้อมเพย์<br>เบอร์โทร</button>
-                    <button data-type="idcard">🪪 พร้อมเพย์<br>เลขบัตร</button>
-                    <button data-type="fixed">🏦 QR<br>ธนาคาร</button>
+                    <button data-type="phone"><svg class="" viewBox="0 0 24 24"><path d="M17 1H7c-1.1 0-2 .9-2 2v18c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V3c0-1.1-.9-2-2-2zm0 18H7V5h10v14z"/></svg><span>พร้อมเพย์<br>เบอร์โทร</span></button>
+                    <button data-type="idcard"><svg class="" viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zM8 7.5a2 2 0 110 4 2 2 0 010-4zM12 16H4v-.75C4 13.9 6.7 13 8 13s4 .9 4 2.25V16zm8-2h-6v-2h6v2zm0-4h-6V8h6v2z"/></svg><span>พร้อมเพย์<br>เลขบัตร</span></button>
+                    <button data-type="fixed"><svg class="" viewBox="0 0 24 24"><path d="M4 10v7h3v-7H4zm6 0v7h3v-7h-3zM2 22h19v-3H2v3zm14-12v7h3v-7h-3zM11.5 1L2 6v2h19V6l-9.5-5z"/></svg><span>QR<br>ธนาคาร</span></button>
                 </div>
 
                 <div class="field">
@@ -448,9 +458,18 @@
     <script>
     /* ================= ข้อมูลธนาคาร ================= */
     // ink = สีตัวอักษรเด่นบนพื้นขาว (กรณีสีธนาคารอ่อนเกิน)
+    const ICON = {
+        star: '<svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>',
+        staro: '<svg viewBox="0 0 24 24"><path d="M22 9.24l-7.19-.62L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21 12 17.27 18.18 21l-1.63-7.03L22 9.24zM12 15.4l-3.76 2.27 1-4.28-3.32-2.88 4.38-.38L12 6.1l1.71 4.04 4.38.38-3.32 2.88 1 4.28L12 15.4z"/></svg>',
+        chu: '<svg viewBox="0 0 24 24"><path d="M12 8l-6 6 1.41 1.41L12 10.83l4.59 4.58L18 14z"/></svg>',
+        chd: '<svg viewBox="0 0 24 24"><path d="M16.59 8.59L12 13.17 7.41 8.59 6 10l6 6 6-6z"/></svg>',
+        cloudok: '<svg viewBox="0 0 24 24"><path d="M19.35 10.04A7.49 7.49 0 0012 4C9.11 4 6.6 5.64 5.35 8.04A5.994 5.994 0 000 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM10 17l-3.5-3.5 1.41-1.41L10 14.17 15.18 9l1.41 1.41L10 17z"/></svg>',
+        phone: '<svg viewBox="0 0 24 24"><path d="M17 1H7c-1.1 0-2 .9-2 2v18c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V3c0-1.1-.9-2-2-2zm0 18H7V5h10v14z"/></svg>'
+    };
     const BANKS = {
         PP:    { name: 'พร้อมเพย์',           en: 'PromptPay', short: '฿',    color: '#00468C' },
         KBANK: { name: 'ธนาคารกสิกรไทย',      en: 'KBank', short: 'K', color: '#138F2D' },
+        MAKE:  { name: 'MAKE by KBank',        en: 'MAKE by KBank', short: 'M', color: '#1E1E1E' },
         SCB:   { name: 'ธนาคารไทยพาณิชย์',     en: 'SCB',       short: 'SCB',  color: '#4E2E7F' },
         BBL:   { name: 'ธนาคารกรุงเทพ',        en: 'Bangkok Bank', short: 'BBL', color: '#1E4598' },
         KTB:   { name: 'ธนาคารกรุงไทย',        en: 'Krungthai', short: 'KTB',  color: '#1BA5E1', ink: '#0B7DB0' },
@@ -467,7 +486,7 @@
     };
     const bankOf = acc => BANKS[acc.bank] || BANKS.PP;
     const inkOf = b => b.ink || b.color;
-    const themeOf = acc => { const t = acc.theme; if (!t || OLD_THEMES.includes(t)) return 'carbon'; if (!t.startsWith('custom:') || !(state.bgs || []).some(b => 'custom:' + b.id === t)) return 'carbon'; return t; };
+    const themeOf = acc => { const t = acc.theme; if (!t || OLD_THEMES.includes(t)) return 'clean'; if (!t.startsWith('custom:') || !(state.bgs || []).some(b => 'custom:' + b.id === t)) return 'clean'; return t; };
 
     /* ================= ธีมกรอบ ================= */
     const THEME_CATS = [
@@ -479,6 +498,7 @@
         { id: 'mine',   name: '🖼 ของฉัน' }
     ];
     const THEMES = [
+        { id: 'clean',   cat: 'base',  name: 'ค่าเริ่มต้น' },
         { id: 'carbon',  cat: 'men',   name: 'คาร์บอน' },
         { id: 'steel',   cat: 'men',   name: 'เหล็กขัด' },
         { id: 'navy',    cat: 'men',   name: 'กรมท่า-ทอง' },
@@ -782,6 +802,15 @@
 
     // ธีมเพิ่มเติม: (ctx, W, H, k, R, bank) → สีตัวอักษรท้ายกรอบ
     const FRAMES = {
+        clean(ctx, W, H, k, R, bank) {
+            const g = ctx.createLinearGradient(0, 0, W, H); g.addColorStop(0, '#F2F6FF'); g.addColorStop(1, '#DCE7FB');
+            ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+            ctx.fillStyle = 'rgba(26,86,219,.06)';
+            [[.1, .08, 260], [.95, .2, 220], [.05, .85, 240], [.9, .95, 300]].forEach(([x, y, r]) => { ctx.beginPath(); ctx.arc(W * x, H * y, r * k, 0, Math.PI * 2); ctx.fill(); });
+            ctx.fillStyle = 'rgba(26,86,219,.10)';
+            for (let y = 30 * k; y < H; y += 36 * k) for (let x = 30 * k; x < W; x += 36 * k) { ctx.beginPath(); ctx.arc(x, y, 1.6 * k, 0, Math.PI * 2); ctx.fill(); }
+            return '#1E3A8A';
+        },
         /* กีฬา / ฮีโร่ / ไดโนเสาร์ */
         football(ctx, W, H, k, R) {
             const sw = 90 * k;
@@ -1251,7 +1280,8 @@
             el.className = 'acc-chip' + (acc.id === state.activeId ? ' active' : '');
             el.style.setProperty('--accent', b.color);
             el.innerHTML = badgeHtml(acc) + '<span class="lbl"></span>';
-            el.querySelector('.lbl').textContent = (state.defaultId === acc.id ? '★ ' : '') + chipLabel(acc);
+            el.querySelector('.lbl').textContent = chipLabel(acc);
+            if (state.defaultId === acc.id) el.insertAdjacentHTML('beforeend', '<span style="color:#F5A524;display:flex">' + ICON.star.replace('<svg', '<svg width="14" height="14"') + '</span>');
             el.onclick = () => { setActive(acc.id); renderAll(); };
             row.appendChild(el);
         });
@@ -1276,9 +1306,9 @@
         el.className = 'theme-dot' + (themeOf(acc).startsWith('custom:') ? '' : ' active');
         el.innerHTML = '<span>ค่าเริ่มต้น</span>';
         const c = document.createElement('canvas'); c.width = 120; c.height = 120;
-        drawFrame(c.getContext('2d'), 120, 120, 'carbon', b);
+        drawFrame(c.getContext('2d'), 120, 120, 'clean', b);
         el.style.backgroundImage = `url(${c.toDataURL()})`;
-        el.onclick = () => { acc.theme = 'carbon'; saveState(); renderThemes(); renderCard(); };
+        el.onclick = () => { acc.theme = 'clean'; saveState(); renderThemes(); renderCard(); };
         row.appendChild(el);
         renderMine(row, acc);
     }
@@ -1303,13 +1333,13 @@
         const list = bgList();
         document.getElementById('frameInfo').innerHTML = !list.length
             ? 'ยังไม่มีกรอบ — โหลด Layout ไปออกแบบใน Canva (1080×1920) แล้วนำเข้า'
-            : (sbUser ? '☁️ กรอบที่นำเข้าจะเก็บบน Supabase ด้วย ใช้ได้ทุกเครื่อง' : '⚠️ ยังไม่ล็อกอินคลาวด์ — กรอบเก็บในเครื่องนี้เท่านั้น (ล็อกอินแล้วจะอัปโหลดให้)');
+            : (sbUser ? 'กรอบที่นำเข้าจะเก็บบน Supabase ด้วย ใช้ได้ทุกเครื่อง' : 'ยังไม่ล็อกอินคลาวด์ — กรอบเก็บในเครื่องนี้เท่านั้น (ล็อกอินแล้วจะอัปโหลดให้)');
         list.forEach((b, i) => {
             const el = document.createElement('div');
             el.className = 'frame-tile';
             if (bgData[b.id]) el.style.backgroundImage = `url(${bgData[b.id]})`;
             const cloud = sbUser && b.up === sbUser.id;
-            el.innerHTML = `<span class="lbl">กรอบ ${i + 1}</span><span class="cl">${cloud ? '☁️' : '📱'}</span><button class="x" type="button">ลบ</button>`;
+            el.innerHTML = `<span class="lbl">กรอบ ${i + 1}</span><span class="cl ${cloud ? 'on' : 'off'}" title="${cloud ? 'อยู่บนคลาวด์' : 'อยู่ในเครื่องนี้'}">${cloud ? ICON.cloudok : ICON.phone}</span><button class="x" type="button">ลบ</button>`;
             const x = el.querySelector('.x');
             x.onclick = () => {
                 if (!x.classList.contains('sure')) { x.classList.add('sure'); x.textContent = 'ยืนยัน?'; setTimeout(() => { x.classList.remove('sure'); x.textContent = 'ลบ'; }, 2500); return; }
@@ -1474,12 +1504,12 @@
             el.className = 'acc-item' + (isDef ? ' is-default' : '');
             el.innerHTML = `<div class="acc-top">${badgeHtml(acc)}
                     <div class="meta"><b></b><small></small></div>
-                    <button class="star-btn" aria-label="ตั้งเป็นบัญชีเริ่มต้น">${isDef ? '★' : '☆'}</button>
+                    <button class="star-btn${isDef ? ' on' : ''}" aria-label="ตั้งเป็นบัญชีเริ่มต้น">${isDef ? ICON.star : ICON.staro}</button>
                 </div>
                 <div class="acc-tools">
-                    <span class="def-tag">${isDef ? '★ บัญชีเริ่มต้น' : ''}</span>
-                    <button class="mini-btn up" ${idx === 0 ? 'disabled' : ''} aria-label="เลื่อนขึ้น">▲</button>
-                    <button class="mini-btn down" ${idx === n - 1 ? 'disabled' : ''} aria-label="เลื่อนลง">▼</button>
+                    <span class="def-tag">${isDef ? '<em>บัญชีเริ่มต้น</em>' : ''}</span>
+                    <button class="mini-btn up" ${idx === 0 ? 'disabled' : ''} aria-label="เลื่อนขึ้น">${ICON.chu}</button>
+                    <button class="mini-btn down" ${idx === n - 1 ? 'disabled' : ''} aria-label="เลื่อนลง">${ICON.chd}</button>
                     <button class="mini-btn edit">แก้ไข</button>
                     <button class="mini-btn del">ลบ</button>
                 </div>`;
@@ -1488,7 +1518,7 @@
                 (acc.type === 'fixed' ? 'QR ธนาคาร' + (acc.accNo ? ' ' + fmtAccNo(acc.accNo) : '') : detailLines(acc)[0]);
             el.querySelector('.star-btn').onclick = () => {
                 state.defaultId = acc.id; state.activeId = acc.id;
-                saveState(); renderList(); renderAll(); showToast('★ ตั้งเป็นบัญชีเริ่มต้นแล้ว');
+                saveState(); renderList(); renderAll(); showToast('✓ ตั้งเป็นบัญชีเริ่มต้นแล้ว');
             };
             el.querySelector('.edit').onclick = () => openEditor(acc);
             const move = d => {
@@ -1524,7 +1554,7 @@
         const el = document.getElementById('storageInfo'); if (!el) return;
         let persisted = false;
         try { persisted = !!(await navigator.storage?.persisted?.()); } catch (e) { /* ignore */ }
-        el.innerHTML = (persisted ? '🔒 เครื่องนี้ล็อกข้อมูลไว้แล้ว ระบบจะไม่ลบเอง' : '⚠️ ข้อมูลเก็บในเบราว์เซอร์เครื่องนี้') +
+        el.innerHTML = (persisted ? 'เครื่องนี้ล็อกข้อมูลไว้แล้ว ระบบจะไม่ลบเอง' : '⚠️ ข้อมูลเก็บในเบราว์เซอร์เครื่องนี้') +
             '<br>ถ้าล้างข้อมูลเบราว์เซอร์ ลบแอป หรือเปลี่ยนเครื่อง ข้อมูลจะหาย — กด <b>สำรองข้อมูล</b> เก็บไฟล์ไว้ (เช่น ส่งเข้า LINE ตัวเอง/Google Drive)';
     }
     async function exportBackup() {
@@ -1620,7 +1650,7 @@
     function deleteBg(id) {
         state.bgs = bgList().filter(b => b.id !== id);
         const gone = 'custom:' + id;
-        state.accounts.forEach(a => { if (a.theme === gone) a.theme = 'carbon'; });
+        state.accounts.forEach(a => { if (a.theme === gone) a.theme = 'clean'; });
         const path = bgPath(id);
         delete bgData[id]; delete bgImgs[id]; saveBgData();
         saveState(); renderThemes(); renderCard(); renderFrames();
