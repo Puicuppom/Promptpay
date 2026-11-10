@@ -224,6 +224,8 @@
         .frame-item { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
         .frame-tile { touch-action: pan-y; -webkit-touch-callout: none; user-select: none; -webkit-user-select: none; cursor: grab; }
         .frame-grid.sorting .frame-tile { touch-action: none; }
+        .acc-top { touch-action: pan-y; -webkit-touch-callout: none; user-select: none; -webkit-user-select: none; cursor: grab; }
+        .acc-item.dragging { transform: scale(1.03); z-index: 5; position: relative; box-shadow: 0 14px 30px rgba(15,23,42,.25); border-color: var(--primary); }
         .frame-item.dragging { transform: scale(1.06); z-index: 5; }
         .frame-item.dragging .frame-tile { box-shadow: 0 14px 30px rgba(15,23,42,.3); outline: 3px solid var(--primary); }
         .theme-dot .dstar { position: absolute; top: 2px; right: 3px; color: #F5A524; display: flex; filter: drop-shadow(0 1px 1px rgba(0,0,0,.4)); }
@@ -366,7 +368,7 @@
             <div class="sheet-body">
                 <div class="acc-list" id="accList"></div>
                 <button class="btn-add" id="addAccBtn"><svg class="ic" viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>เพิ่มบัญชี</button>
-                <p class="field-hint" style="margin-top:8px">แตะดาวเพื่อตั้งบัญชีที่แสดงก่อนเมื่อเปิดแอป · ใช้ลูกศรสลับลำดับ</p>
+                <p class="field-hint" style="margin-top:8px">แตะดาวเพื่อตั้งบัญชีเริ่มต้น (ย้ายไปอันแรก) · กดค้างแล้วลากเพื่อสลับลำดับ</p>
                 <div class="backup-box">
                     <div class="box-title"><svg class="ic" viewBox="0 0 24 24"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>กรอบสลิปของฉัน</div>
                     <div class="field" style="margin-top:8px">
@@ -645,6 +647,7 @@
     let state = loadState();
     if (!state.defaultId || !state.accounts.some(a => a.id === state.defaultId)) state.defaultId = state.accounts[0].id;
     state.activeId = state.defaultId; // เปิดแอปมาแสดงบัญชีเริ่มต้นก่อน
+    { const i = state.accounts.findIndex(a => a.id === state.defaultId); if (i > 0) state.accounts.unshift(state.accounts.splice(i, 1)[0]); }
     // ย้ายค่าจากเวอร์ชันก่อน: กรอบเริ่มต้นที่เคยตั้ง → ย้ายไปอันแรก
     if (state.defaultTheme && state.bgs) {
         const i = state.bgs.findIndex(x => 'custom:' + x.id === state.defaultTheme);
@@ -1494,10 +1497,25 @@
         });
     }
 
+    function dropFrames(order) {
+        const was0 = bgList()[0]?.id;
+        const map = new Map(bgList().map(b => [b.id, b]));
+        state.bgs = order.map(id => map.get(id)).filter(Boolean);
+        saveState(); renderFrames(); renderThemes();
+        showToast(order[0] !== was0 ? '✓ เรียงลำดับแล้ว — อันแรกเป็นกรอบเริ่มต้น' : '✓ เรียงลำดับกรอบแล้ว');
+    }
+    function dropAccounts(order) {
+        const was0 = state.accounts[0]?.id;
+        const map = new Map(state.accounts.map(a => [a.id, a]));
+        state.accounts = order.map(id => map.get(id)).filter(Boolean);
+        state.defaultId = state.accounts[0].id; // บัญชีแรก = บัญชีเริ่มต้น
+        saveState(); renderList(); renderChips();
+        showToast(order[0] !== was0 ? '✓ เรียงลำดับแล้ว — อันแรกเป็นบัญชีเริ่มต้น' : '✓ เรียงลำดับบัญชีแล้ว');
+    }
     // กดค้าง (0.35 วิ) ที่รูปกรอบ แล้วลากไปวางตำแหน่งไหนก็ได้
     // ฟังเหตุการณ์ที่ document ระหว่างลาก — ย้าย DOM แล้ว pointer capture จะหลุด ถ้าฟังที่ tile จะลากได้แค่ช่องเดียว
-    function enableDrag(item, grid) {
-        const tile = item.querySelector('.frame-tile');
+    function enableDrag(item, grid, handleSel = '.frame-tile', onDrop = dropFrames) {
+        const tile = item.querySelector(handleSel);
         let timer = null, dragging = false, sx = 0, sy = 0, pid = null;
         tile.addEventListener('contextmenu', e => e.preventDefault());
         const onMove = e => {
@@ -1505,7 +1523,7 @@
             if (!dragging) { if (Math.hypot(e.clientX - sx, e.clientY - sy) > 8) stop(false); return; }
             e.preventDefault();
             const hit = document.elementFromPoint(e.clientX, e.clientY);
-            const over = hit && hit.closest('.frame-item[data-id]');
+            const over = hit && hit.closest('[data-id]');
             if (!over || over === item || over.parentNode !== grid) return;
             const items = [...grid.children], from = items.indexOf(item), to = items.indexOf(over);
             grid.insertBefore(item, from < to ? over.nextSibling : over);
@@ -1521,12 +1539,7 @@
             const was = dragging; dragging = false; pid = null;
             item.classList.remove('dragging'); grid.classList.remove('sorting');
             if (!was || !save) return;
-            const was0 = bgList()[0]?.id;
-            const order = [...grid.querySelectorAll('.frame-item[data-id]')].map(el => el.dataset.id);
-            const map = new Map(bgList().map(b => [b.id, b]));
-            state.bgs = order.map(id => map.get(id)).filter(Boolean);
-            saveState(); renderFrames(); renderThemes();
-            showToast(order[0] !== was0 ? '✓ เรียงลำดับแล้ว — อันแรกเป็นกรอบเริ่มต้น' : '✓ เรียงลำดับกรอบแล้ว');
+            onDrop([...grid.querySelectorAll(':scope > [data-id]')].map(el => el.dataset.id));
         };
         tile.addEventListener('pointerdown', e => {
             if (e.target.closest('button') || pid !== null) return;
@@ -1694,17 +1707,15 @@
         const n = state.accounts.length;
         state.accounts.forEach((acc, idx) => {
             const b = bankOf(acc);
-            const isDef = state.defaultId === acc.id;
+            const isDef = idx === 0;
             const el = document.createElement('div');
-            el.className = 'acc-item' + (isDef ? ' is-default' : '');
+            el.className = 'acc-item' + (isDef ? ' is-default' : ''); el.dataset.id = acc.id;
             el.innerHTML = `<div class="acc-top">${badgeHtml(acc)}
                     <div class="meta"><b></b><small></small></div>
                     <button class="star-btn${isDef ? ' on' : ''}" aria-label="ตั้งเป็นบัญชีเริ่มต้น">${isDef ? ICON.star : ICON.staro}</button>
                 </div>
                 <div class="acc-tools">
                     <span class="def-tag">${isDef ? '<em>บัญชีเริ่มต้น</em>' : ''}</span>
-                    <button class="mini-btn up" ${idx === 0 ? 'disabled' : ''} aria-label="เลื่อนขึ้น">${ICON.chu}</button>
-                    <button class="mini-btn down" ${idx === n - 1 ? 'disabled' : ''} aria-label="เลื่อนลง">${ICON.chd}</button>
                     <button class="mini-btn edit">แก้ไข</button>
                     <button class="mini-btn del">ลบ</button>
                 </div>`;
@@ -1712,17 +1723,12 @@
             el.querySelector('small').textContent = (acc.bank === 'PP' ? 'พร้อมเพย์' : b.name) + ' · ' +
                 (acc.type === 'fixed' ? 'QR ธนาคาร' + (acc.accNo ? ' ' + fmtAccNo(acc.accNo) : '') : detailLines(acc)[0]);
             el.querySelector('.star-btn').onclick = () => {
+                if (isDef) return;
+                state.accounts.unshift(state.accounts.splice(idx, 1)[0]); // ย้ายไปอันแรก
                 state.defaultId = acc.id; state.activeId = acc.id;
                 saveState(); renderList(); renderAll(); showToast('✓ ตั้งเป็นบัญชีเริ่มต้นแล้ว');
             };
             el.querySelector('.edit').onclick = () => openEditor(acc);
-            const move = d => {
-                const j = idx + d; if (j < 0 || j >= n) return;
-                [state.accounts[idx], state.accounts[j]] = [state.accounts[j], state.accounts[idx]];
-                saveState(); renderList(); renderChips();
-            };
-            el.querySelector('.up').onclick = () => move(-1);
-            el.querySelector('.down').onclick = () => move(1);
             const del = el.querySelector('.del');
             del.onclick = () => {
                 if (!del.classList.contains('confirm')) {
@@ -1733,10 +1739,11 @@
                 if (n === 1) return showToast('ต้องมีอย่างน้อย 1 บัญชี');
                 state.accounts = state.accounts.filter(a => a.id !== acc.id);
                 if (state.activeId === acc.id) state.activeId = state.accounts[0].id;
-                if (state.defaultId === acc.id) state.defaultId = state.accounts[0].id;
+                state.defaultId = state.accounts[0].id;
                 saveState(); renderList(); renderAll();
             };
             list.appendChild(el);
+            enableDrag(el, list, '.acc-top', dropAccounts);
         });
         renderStorageInfo(); renderCloud(); renderFrames();
         document.getElementById('cfgHeader').value = state.headerText != null ? state.headerText : 'QR รับเงิน';
@@ -1939,6 +1946,7 @@
         if (data && data.data && Array.isArray(data.data.accounts) && (!state.updatedAt || remoteT > state.updatedAt)) {
             state = { ...state, ...data.data, updatedAt: remoteT };
             if (!state.accounts.some(a => a.id === state.defaultId)) state.defaultId = state.accounts[0].id;
+            { const i = state.accounts.findIndex(a => a.id === state.defaultId); if (i > 0) state.accounts.unshift(state.accounts.splice(i, 1)[0]); }
             state.activeId = state.defaultId;
             persistLocal();
             await pullBgs();
