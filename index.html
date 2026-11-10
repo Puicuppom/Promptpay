@@ -1260,9 +1260,15 @@
         // การ์ดขาว + เงา
         const CY = topM;
         ctx.save();
-        ctx.shadowColor = 'rgba(0,0,0,.22)'; ctx.shadowBlur = 40; ctx.shadowOffsetY = 14;
-        ctx.fillStyle = '#fff'; rr(ctx, CX, CY, CW, CH, 40); ctx.fill();
+        // เงา 3 ชั้น: ฟุ้งกว้าง + กลาง + คม → การ์ดลอยเด่นจากพื้นหลัง
+        [['rgba(0,0,0,.30)', 90, 40], ['rgba(0,0,0,.28)', 34, 16], ['rgba(0,0,0,.22)', 8, 4]].forEach(([c, bl, oy]) => {
+            ctx.shadowColor = c; ctx.shadowBlur = bl; ctx.shadowOffsetY = oy;
+            ctx.fillStyle = '#fff'; rr(ctx, CX, CY, CW, CH, 40); ctx.fill();
+        });
         ctx.restore();
+        // ขอบขาวเรืองรอบการ์ด
+        ctx.save(); ctx.strokeStyle = 'rgba(255,255,255,.85)'; ctx.lineWidth = 6;
+        rr(ctx, CX - 3, CY - 3, CW + 6, CH + 6, 43); ctx.stroke(); ctx.restore();
 
         ctx.save(); rr(ctx, CX, CY, CW, CH, 40); ctx.clip();
 
@@ -1333,7 +1339,7 @@
         if (themeOf(acc).startsWith('custom:')) {
             // กรอบที่นำเข้ามักมีลายเยอะ → วางข้อความบนป้ายพื้นขาว อ่านง่ายทุกพื้นหลัง
             const tw = ctx.measureText(footTxt).width + 56, fy = CY + CH + 84;
-            ctx.save(); ctx.shadowColor = 'rgba(0,0,0,.18)'; ctx.shadowBlur = 16; ctx.shadowOffsetY = 4;
+            ctx.save(); ctx.shadowColor = 'rgba(0,0,0,.32)'; ctx.shadowBlur = 24; ctx.shadowOffsetY = 8;
             ctx.fillStyle = 'rgba(255,255,255,.94)'; rr(ctx, (W - tw) / 2, fy - 40, tw, 58, 29); ctx.fill(); ctx.restore();
             ctx.fillStyle = '#1E293B'; ctx.fillText(footTxt, W / 2, fy);
         } else {
@@ -1347,11 +1353,11 @@
             const fs = fitFont(ctx, title, 700, 60, W - 200);
             if (t.startsWith('custom:')) {
                 const tw = ctx.measureText(title).width + 72, ph = fs + 34;
-                ctx.save(); ctx.shadowColor = 'rgba(0,0,0,.18)'; ctx.shadowBlur = 18; ctx.shadowOffsetY = 4;
+                ctx.save(); ctx.shadowColor = 'rgba(0,0,0,.32)'; ctx.shadowBlur = 26; ctx.shadowOffsetY = 8;
                 ctx.fillStyle = 'rgba(255,255,255,.94)'; rr(ctx, (W - tw) / 2, CY - 80 - fs * .78 - 17, tw, ph, ph / 2); ctx.fill(); ctx.restore();
                 ctx.fillStyle = '#0F172A';
             } else {
-                ctx.shadowColor = ink === '#ffffff' ? 'rgba(0,0,0,.35)' : 'rgba(255,255,255,.6)'; ctx.shadowBlur = 10;
+                ctx.shadowColor = ink === '#ffffff' ? 'rgba(0,0,0,.5)' : 'rgba(255,255,255,.9)'; ctx.shadowBlur = 14; ctx.shadowOffsetY = 3;
                 ctx.fillStyle = ink;
             }
             ctx.fillText(title, W / 2, CY - 80); ctx.restore();

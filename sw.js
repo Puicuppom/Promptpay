@@ -1,4 +1,4 @@
-const CACHE = 'promptpay-v22';
+const CACHE = 'promptpay-v23';
 // path แบบ relative — ใช้ได้ทั้ง Vercel (/) และ GitHub Pages (/Promptpay/)
 const ASSETS = [
   './',
