@@ -8,10 +8,10 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="พร้อมเพย์">
-    <link rel="manifest" href="manifest.json?v=13">
-    <link rel="icon" href="icon.svg?v=13" type="image/svg+xml">
-    <link rel="icon" href="icon-192.png?v=13" type="image/png" sizes="192x192">
-    <link rel="apple-touch-icon" href="apple-touch-icon.png?v=13" sizes="180x180">
+    <link rel="manifest" href="manifest.json?v=14">
+    <link rel="icon" href="icon.svg?v=14" type="image/svg+xml">
+    <link rel="icon" href="icon-192.png?v=14" type="image/png" sizes="192x192">
+    <link rel="apple-touch-icon" href="apple-touch-icon.png?v=14" sizes="180x180">
     <title>QR รับเงิน</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -80,6 +80,31 @@
         .acc-chip span.lbl { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .acc-chip.active { border-color: var(--primary); background: var(--primary-soft); color: var(--primary); box-shadow: 0 2px 10px rgba(26,86,219,.15); }
         .acc-chip.add { padding: 5px 14px; color: var(--primary); border-style: dashed; background: transparent; }
+        .acc-dd { position: relative; flex-shrink: 0; z-index: 20; }
+        .acc-dd-btn, .dd-item {
+            width: 100%; display: flex; align-items: center; gap: 10px; text-align: left; cursor: pointer;
+            background: var(--surface); border: 1.5px solid var(--line); border-radius: 14px; padding: 8px 12px 8px 8px; color: var(--text);
+        }
+        .acc-dd-btn { box-shadow: var(--shadow); min-height: 56px; }
+        .acc-dd-btn.open { border-color: var(--primary); box-shadow: 0 0 0 4px rgba(26,86,219,.12); }
+        .acc-dd .badge { width: 38px; height: 38px; font-size: 12px; }
+        .dd-meta { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+        .dd-meta b { font-size: 15px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; align-items: center; gap: 4px; }
+        .dd-meta small { font-size: 12.5px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .dd-star { color: #F5A524; display: inline-flex; } .dd-star svg { width: 14px; height: 14px; }
+        .dd-chev { color: var(--muted); display: flex; transition: transform .15s; } .dd-chev svg { width: 24px; height: 24px; }
+        .acc-dd-btn.open .dd-chev { transform: rotate(180deg); }
+        .acc-dd-menu {
+            position: absolute; left: 0; right: 0; top: calc(100% + 6px); background: var(--surface); border: 1px solid var(--line);
+            border-radius: 16px; box-shadow: 0 12px 32px rgba(15,23,42,.16); padding: 6px; display: flex; flex-direction: column; gap: 4px;
+            max-height: 60dvh; overflow-y: auto;
+        }
+        .dd-item { border-color: transparent; }
+        .dd-item:hover { background: var(--surface-2); }
+        .dd-item.active { background: var(--primary-soft); }
+        .dd-check { color: var(--primary); font-weight: 700; }
+        .dd-item.add { color: var(--primary); }
+        .dd-plus { width: 38px; height: 38px; border-radius: 50%; border: 1.5px dashed #A9C3F7; display: flex; align-items: center; justify-content: center; font-size: 20px; }
         .badge {
             width: 30px; height: 30px; border-radius: 50%; flex-shrink: 0; display: flex;
             align-items: center; justify-content: center; color: #fff; font-weight: 700; font-size: 11px;
@@ -274,7 +299,7 @@
 <body>
     <div class="app">
         <div class="topbar">
-            <div class="brand"><img src="icon.svg?v=13" alt=""><span class="topbar-title">QR รับเงิน<small>PromptPay · Thai QR</small></span></div>
+            <div class="brand"><img src="icon.svg?v=14" alt=""><span class="topbar-title">QR รับเงิน<small>PromptPay · Thai QR</small></span></div>
             <div class="topbar-actions">
                 <button class="icon-btn" id="installBtn" aria-label="ติดตั้งแอป" style="display:none;">
                     <svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
@@ -285,7 +310,10 @@
             </div>
         </div>
 
-        <div class="acc-row" id="accRow"></div>
+        <div class="acc-dd" id="accDD">
+            <button class="acc-dd-btn" id="accDDBtn" type="button" aria-haspopup="listbox" aria-expanded="false"></button>
+            <div class="acc-dd-menu" id="accDDMenu" role="listbox" hidden></div>
+        </div>
 
         <div class="stage" id="stage"><canvas id="cardCanvas" aria-label="QR รับเงิน"></canvas></div>
 
@@ -423,7 +451,7 @@
     <div class="toast" id="toast"></div>
 
     <div class="install-banner" id="installBanner">
-        <img src="icon.svg?v=13" alt="">
+        <img src="icon.svg?v=14" alt="">
         <div class="install-banner-text">
             <strong>ติดตั้งแอป พร้อมเพย์</strong>
             <span>เปิดได้จากหน้าจอโฮม</span>
@@ -1275,25 +1303,42 @@
         if (acc.logo) return `<span class="badge" style="background:#fff url(${acc.logo}) center/cover"></span>`;
         return `<span class="badge" style="background:${b.color};color:${b.fg || '#fff'}">${b.short}</span>`;
     }
+    function accRowHtml(acc) {
+        return badgeHtml(acc) + '<span class="dd-meta"><b></b><small></small></span>';
+    }
+    function fillAccRow(el, acc) {
+        const b = bankOf(acc);
+        el.querySelector('b').textContent = acc.name || '-';
+        el.querySelector('small').textContent = (acc.bank === 'PP' ? 'พร้อมเพย์' : b.name) + ' · ' +
+            (acc.type === 'phone' ? fmtPhone(acc.ppId) : acc.type === 'idcard' ? 'เลขบัตร ' + maskId(acc.ppId) : (acc.accNo ? fmtAccNo(acc.accNo) : 'QR ธนาคาร'));
+        if (state.defaultId === acc.id) el.querySelector('b').insertAdjacentHTML('beforeend', ' <span class="dd-star">' + ICON.star + '</span>');
+    }
     function renderChips() {
-        const row = document.getElementById('accRow');
-        row.innerHTML = '';
-        state.accounts.forEach(acc => {
-            const b = bankOf(acc);
+        const acc = activeAcc();
+        const btn = document.getElementById('accDDBtn');
+        btn.innerHTML = accRowHtml(acc) + '<span class="dd-chev">' + ICON.chd + '</span>';
+        fillAccRow(btn, acc);
+        const menu = document.getElementById('accDDMenu');
+        menu.innerHTML = '';
+        state.accounts.forEach(a => {
             const el = document.createElement('button');
-            el.className = 'acc-chip' + (acc.id === state.activeId ? ' active' : '');
-            el.style.setProperty('--accent', b.color);
-            el.innerHTML = badgeHtml(acc) + '<span class="lbl"></span>';
-            el.querySelector('.lbl').textContent = chipLabel(acc);
-            if (state.defaultId === acc.id) el.insertAdjacentHTML('beforeend', '<span style="color:#F5A524;display:flex">' + ICON.star.replace('<svg', '<svg width="14" height="14"') + '</span>');
-            el.onclick = () => { setActive(acc.id); renderAll(); };
-            row.appendChild(el);
+            el.type = 'button'; el.className = 'dd-item' + (a.id === state.activeId ? ' active' : '');
+            el.setAttribute('role', 'option');
+            el.innerHTML = accRowHtml(a) + (a.id === state.activeId ? '<span class="dd-check">✓</span>' : '');
+            fillAccRow(el, a);
+            el.onclick = () => { setActive(a.id); toggleDD(false); renderAll(); };
+            menu.appendChild(el);
         });
         const add = document.createElement('button');
-        add.className = 'acc-chip add'; add.textContent = '+ เพิ่ม';
-        add.onclick = () => openEditor(null);
-        row.appendChild(add);
-        row.querySelector('.active')?.scrollIntoView({ inline: 'nearest', block: 'nearest' });
+        add.type = 'button'; add.className = 'dd-item add';
+        add.innerHTML = '<span class="dd-plus">+</span><span class="dd-meta"><b>เพิ่มบัญชี</b></span>';
+        add.onclick = () => { toggleDD(false); openEditor(null); };
+        menu.appendChild(add);
+    }
+    function toggleDD(open) {
+        const menu = document.getElementById('accDDMenu'), btn = document.getElementById('accDDBtn');
+        const o = open ?? menu.hidden;
+        menu.hidden = !o; btn.setAttribute('aria-expanded', String(o)); btn.classList.toggle('open', o);
     }
     function chipLabel(acc) {
         const b = bankOf(acc);
@@ -1871,6 +1916,8 @@
     /* ================= init ================= */
     document.addEventListener('DOMContentLoaded', () => {
         fillBankSelect();
+        document.getElementById('accDDBtn').addEventListener('click', e => { e.stopPropagation(); toggleDD(); });
+        document.addEventListener('click', e => { if (!document.getElementById('accDD').contains(e.target)) toggleDD(false); });
         renderAll();
         // วาดใหม่เมื่อฟอนต์ Prompt โหลดเสร็จ
         document.fonts?.load('700 40px Prompt').then(() => renderCard()).catch(() => {});

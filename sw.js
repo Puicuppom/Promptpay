@@ -1,4 +1,4 @@
-const CACHE = 'promptpay-v13';
+const CACHE = 'promptpay-v14';
 const ASSETS = [
   '/',
   '/index.html',
