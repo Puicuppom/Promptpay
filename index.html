@@ -228,6 +228,10 @@
         .frame-item.dragging .frame-tile { box-shadow: 0 14px 30px rgba(15,23,42,.3); outline: 3px solid var(--primary); }
         .theme-dot .dstar { position: absolute; top: 2px; right: 3px; color: #F5A524; display: flex; filter: drop-shadow(0 1px 1px rgba(0,0,0,.4)); }
         .theme-dot .dstar svg { width: 14px; height: 14px; }
+        .frame-tile .fstar { position: absolute; top: 4px; left: 4px; width: 30px; height: 30px; border: none; border-radius: 50%; background: rgba(255,255,255,.95); color: #94A3B8; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 2px 6px rgba(15,23,42,.25); padding: 0; }
+        .frame-tile .fstar svg { width: 20px; height: 20px; }
+        .frame-tile .fstar.on { color: #F5A524; background: #FFF7E6; box-shadow: 0 0 0 2px #FBD38D, 0 2px 6px rgba(15,23,42,.25); }
+        .theme-dot .dstar { top: 3px; left: 3px; right: auto; background: rgba(255,255,255,.95); border-radius: 50%; padding: 2px; }
         .fdef { height: 28px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); color: var(--muted); font-family: inherit; font-size: 11.5px; display: flex; align-items: center; justify-content: center; gap: 4px; cursor: pointer; }
         .fdef svg { width: 18px; height: 18px; }
         .fdef { color: #CBD5E1; }
@@ -235,7 +239,7 @@
         .frame-item .fname { width: 100%; height: 30px; border: 1px solid var(--line); border-radius: 8px; padding: 0 6px; font-family: inherit; font-size: 12px; text-align: center; color: var(--text); background: var(--surface-2); outline: none; }
         .frame-item .fname:focus { border-color: var(--primary); background: #fff; }
         .frame-tile .lbl { position: absolute; left: 0; right: 0; bottom: 0; font-size: 11px; text-align: center; background: rgba(15,23,42,.55); color: #fff; line-height: 20px; }
-        .frame-tile .cl { position: absolute; top: 4px; left: 4px; width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: #fff; box-shadow: var(--shadow); }
+        .frame-tile .cl { position: absolute; bottom: 4px; left: 4px; width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: #fff; box-shadow: var(--shadow); }
         .frame-tile .cl svg { width: 14px; height: 14px; }
         .frame-tile .cl.on { color: var(--ok); } .frame-tile .cl.off { color: #94A3B8; }
         .frame-tile .x { position: absolute; top: 4px; right: 4px; border: none; background: rgba(255,255,255,.95); color: var(--danger); font-size: 11px; padding: 2px 7px; border-radius: 6px; cursor: pointer; font-family: inherit; box-shadow: var(--shadow); }
@@ -568,7 +572,9 @@
     // ข้อความหัวสลิป: ของบัญชี (ถ้าตั้งไว้) > ค่าเริ่มต้นในตั้งค่า > 'QR รับเงิน'
     const headerOf = acc => (acc.header != null && acc.header !== '') ? (acc.header === '-' ? '' : acc.header)
         : (state.headerText != null ? state.headerText : 'QR รับเงิน');
-    const themeOf = acc => acc.theme === 'base' ? 'clean' : (validCustom(acc.theme) || validCustom(state.defaultTheme) || 'clean');
+    // กรอบเริ่มต้น = กรอบอันแรกในรายการเสมอ (ไม่มีกรอบเลย = พื้นฐาน)
+    const defaultFrame = () => (state.bgs && state.bgs.length) ? 'custom:' + state.bgs[0].id : 'clean';
+    const themeOf = acc => validCustom(acc.theme) || defaultFrame();
 
     /* ================= ธีมกรอบ ================= */
     const THEME_CATS = [
@@ -639,6 +645,12 @@
     let state = loadState();
     if (!state.defaultId || !state.accounts.some(a => a.id === state.defaultId)) state.defaultId = state.accounts[0].id;
     state.activeId = state.defaultId; // เปิดแอปมาแสดงบัญชีเริ่มต้นก่อน
+    // ย้ายค่าจากเวอร์ชันก่อน: กรอบเริ่มต้นที่เคยตั้ง → ย้ายไปอันแรก
+    if (state.defaultTheme && state.bgs) {
+        const i = state.bgs.findIndex(x => 'custom:' + x.id === state.defaultTheme);
+        if (i > 0) state.bgs.unshift(state.bgs.splice(i, 1)[0]);
+        state.defaultTheme = '';
+    }
     function persistLocal() { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) { showToast('บันทึกในเครื่องไม่สำเร็จ'); } }
     function saveState() { state.updatedAt = Date.now(); persistLocal(); if (typeof schedulePush === 'function') schedulePush(); }
     function setActive(id) { state.activeId = id; persistLocal(); } // เปลี่ยนบัญชีที่ดูอยู่ ไม่นับเป็นการแก้ไข
@@ -1422,84 +1434,56 @@
         return (acc.bank === 'PP' ? 'พร้อมเพย์' : b.en) + ' · ' + kind;
     }
 
+    // หน้าหลัก: แถวเลือกกรอบ (แสดงเมื่อมีกรอบที่นำเข้า) — ดาว = กรอบเริ่มต้น
     function renderThemes() {
-        const acc = activeAcc(), b = bankOf(acc);
+        const acc = activeAcc();
         const row = document.getElementById('themeRow');
         row.innerHTML = '';
-        // กรอบค่าเริ่มต้น
-        const el = document.createElement('button');
-        el.className = 'theme-dot' + (themeOf(acc) === 'clean' ? ' active' : '');
-        el.innerHTML = '<span>พื้นฐาน</span>' + (validCustom(state.defaultTheme) ? '' : '<i class="dstar">' + ICON.star + '</i>');
-        const c = document.createElement('canvas'); c.width = 120; c.height = 120;
-        drawFrame(c.getContext('2d'), 120, 120, 'clean', b);
-        el.style.backgroundImage = `url(${c.toDataURL()})`;
-        el.onclick = () => { acc.theme = 'base'; saveState(); renderThemes(); renderCard(); };
-        row.appendChild(el);
-        renderMine(row, acc);
-    }
-    // หน้าหลัก: เลือกกรอบอย่างเดียว (จัดการกรอบอยู่ในตั้งค่า)
-    function renderMine(row, acc) {
         row.style.display = bgList().length ? 'flex' : 'none';
+        const cur = themeOf(acc), def = defaultFrame();
         bgList().forEach((b, i) => {
             const id = 'custom:' + b.id;
             const el = document.createElement('button');
-            el.className = 'theme-dot' + (themeOf(acc) === id ? ' active' : '');
-            el.innerHTML = '<span></span>' + (state.defaultTheme === id ? '<i class="dstar">' + ICON.star + '</i>' : ''); el.querySelector('span').textContent = b.name || `กรอบ ${i + 1}`; el.title = b.name || '';
+            el.className = 'theme-dot' + (cur === id ? ' active' : '');
+            el.innerHTML = '<span></span>' + (def === id ? '<i class="dstar">' + ICON.star + '</i>' : '');
+            el.querySelector('span').textContent = b.name || `กรอบ ${i + 1}`; el.title = b.name || '';
             if (bgData[b.id]) el.style.backgroundImage = `url(${bgData[b.id]})`;
-            el.onclick = () => { acc.theme = id; saveState(); renderThemes(); renderCard(); };
+            el.onclick = () => { acc.theme = id === def ? '' : id; saveState(); renderThemes(); renderCard(); };
             row.appendChild(el);
         });
     }
 
     // ตั้งค่า: จัดการกรอบ
+    function setDefaultFrame(id) {
+        const list = bgList(), i = list.findIndex(b => b.id === id);
+        if (i > 0) list.unshift(list.splice(i, 1)[0]); // ย้ายไปอันแรก
+        state.accounts.forEach(a => { a.theme = ''; });   // ทุกบัญชีใช้กรอบเริ่มต้น
+        saveState(); renderFrames(); renderThemes(); renderCard();
+        showToast('✓ ตั้งเป็นกรอบเริ่มต้นแล้ว');
+    }
     function renderFrames() {
         const grid = document.getElementById('frameGrid'); if (!grid) return;
         grid.innerHTML = '';
         const list = bgList();
         document.getElementById('frameInfo').innerHTML = !list.length
-            ? 'ยังไม่มีกรอบ — โหลด Layout ไปออกแบบใน Canva (1080×1920) แล้วนำเข้า'
-            : (sbUser ? 'กดค้างที่รูปแล้วลากเพื่อสลับลำดับ · แตะชื่อเพื่อแก้ · กด ☆ ตั้งเป็นกรอบเริ่มต้น' : 'กดค้างที่รูปแล้วลากเพื่อสลับลำดับ · ยังไม่ล็อกอินคลาวด์ — กรอบเก็บในเครื่องนี้เท่านั้น');
-        const defT = validCustom(state.defaultTheme) || 'base';
-        const setDefault = t => {
-            state.defaultTheme = t === 'base' ? '' : t;
-            // ทุกบัญชีเปลี่ยนมาใช้กรอบเริ่มต้นนี้
-            state.accounts.forEach(a => { a.theme = ''; });
-            saveState(); renderFrames(); renderThemes(); renderCard();
-            showToast('✓ ตั้งเป็นกรอบเริ่มต้นแล้ว');
-        };
-        const defBtn = (t) => {
-            const on = defT === t;
-            const btn = document.createElement('button');
-            btn.type = 'button'; btn.className = 'fdef' + (on ? ' on' : '');
-            btn.innerHTML = on ? ICON.star : ICON.staro;
-            btn.title = on ? 'กรอบเริ่มต้น' : 'ตั้งเป็นกรอบเริ่มต้น'; btn.setAttribute('aria-label', btn.title);
-            btn.onclick = () => setDefault(t);
-            return btn;
-        };
-        if (list.length) {
-            const item = document.createElement('div'); item.className = 'frame-item';
-            const el = document.createElement('div'); el.className = 'frame-tile';
-            const c = document.createElement('canvas'); c.width = 90; c.height = 160;
-            drawFrame(c.getContext('2d'), 90, 160, 'clean', BANKS.PP);
-            el.style.backgroundImage = `url(${c.toDataURL()})`;
-            el.innerHTML = '<span class="lbl">พื้นฐาน</span>';
-            item.append(el, defBtn('base'));
-            grid.appendChild(item);
-        }
+            ? 'ยังไม่มีกรอบ — ใช้กรอบพื้นฐานอยู่ · โหลด Layout ไปออกแบบใน Canva (1080×1920) แล้วนำเข้า'
+            : 'แตะดาวเพื่อตั้งเป็นกรอบเริ่มต้น (ย้ายไปอันแรก) · กดค้างแล้วลากเพื่อสลับลำดับ · แตะชื่อเพื่อแก้' + (sbUser ? '' : '<br>ยังไม่ล็อกอินคลาวด์ — กรอบเก็บในเครื่องนี้เท่านั้น');
         list.forEach((b, i) => {
             const item = document.createElement('div');
             item.className = 'frame-item'; item.dataset.id = b.id;
             const el = document.createElement('div');
             el.className = 'frame-tile';
             if (bgData[b.id]) el.style.backgroundImage = `url(${bgData[b.id]})`;
-            const cloud = sbUser && b.up === sbUser.id;
+            const cloud = sbUser && b.up === sbUser.id, isDef = i === 0;
+            el.innerHTML = `<button class="fstar${isDef ? ' on' : ''}" type="button" title="${isDef ? 'กรอบเริ่มต้น' : 'ตั้งเป็นกรอบเริ่มต้น'}">${isDef ? ICON.star : ICON.staro}</button>`
+                + `<span class="cl ${cloud ? 'on' : 'off'}" title="${cloud ? 'อยู่บนคลาวด์' : 'อยู่ในเครื่องนี้'}">${cloud ? ICON.cloudok : ICON.phone}</span><button class="x" type="button">ลบ</button>`;
+            el.querySelector('.fstar').onclick = () => { if (!isDef) setDefaultFrame(b.id); };
             const nm = document.createElement('input');
             nm.className = 'fname'; nm.maxLength = 30; nm.placeholder = `กรอบ ${i + 1}`; nm.value = b.name || '';
             nm.setAttribute('aria-label', 'ชื่อกรอบ');
             nm.onchange = () => { b.name = nm.value.trim(); saveState(); renderThemes(); };
             nm.onkeydown = e => { if (e.key === 'Enter') nm.blur(); };
-            item.append(el, nm, defBtn('custom:' + b.id));
-            el.innerHTML = `<span class="cl ${cloud ? 'on' : 'off'}" title="${cloud ? 'อยู่บนคลาวด์' : 'อยู่ในเครื่องนี้'}">${cloud ? ICON.cloudok : ICON.phone}</span><button class="x" type="button">ลบ</button>`;
+            item.append(el, nm);
             const x = el.querySelector('.x');
             x.onclick = () => {
                 if (!x.classList.contains('sure')) { x.classList.add('sure'); x.textContent = 'ยืนยัน?'; setTimeout(() => { x.classList.remove('sure'); x.textContent = 'ลบ'; }, 2500); return; }
@@ -1537,11 +1521,12 @@
             const was = dragging; dragging = false; pid = null;
             item.classList.remove('dragging'); grid.classList.remove('sorting');
             if (!was || !save) return;
+            const was0 = bgList()[0]?.id;
             const order = [...grid.querySelectorAll('.frame-item[data-id]')].map(el => el.dataset.id);
             const map = new Map(bgList().map(b => [b.id, b]));
             state.bgs = order.map(id => map.get(id)).filter(Boolean);
             saveState(); renderFrames(); renderThemes();
-            showToast('✓ เรียงลำดับกรอบแล้ว');
+            showToast(order[0] !== was0 ? '✓ เรียงลำดับแล้ว — อันแรกเป็นกรอบเริ่มต้น' : '✓ เรียงลำดับกรอบแล้ว');
         };
         tile.addEventListener('pointerdown', e => {
             if (e.target.closest('button') || pid !== null) return;
@@ -1851,7 +1836,7 @@
             bgData[id] = c.toDataURL('image/jpeg', .82);
             if (!saveBgData()) { delete bgData[id]; return; }
             bgList().push({ id, name: 'กรอบ ' + (bgList().length + 1) });
-            const acc = activeAcc(); acc.theme = 'custom:' + id;
+            const acc = activeAcc(); acc.theme = bgList().length === 1 ? '' : 'custom:' + id;
             saveState(); renderThemes(); renderCard(); renderFrames();
             showToast('✓ นำเข้ากรอบแล้ว' + (sbUser ? ' — กำลังอัปโหลดขึ้นคลาวด์' : ''));
         };
