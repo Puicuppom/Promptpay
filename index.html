@@ -222,6 +222,12 @@
         .frame-grid:empty { display: none; }
         .frame-tile { position: relative; aspect-ratio: 9 / 16; border-radius: 10px; background: var(--surface-2) center/cover; border: 1px solid var(--line); overflow: hidden; }
         .frame-item { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+        .frame-tile { touch-action: pan-y; -webkit-touch-callout: none; user-select: none; -webkit-user-select: none; cursor: grab; }
+        .frame-grid.sorting .frame-tile { touch-action: none; }
+        .frame-item.dragging { transform: scale(1.06); z-index: 5; }
+        .frame-item.dragging .frame-tile { box-shadow: 0 14px 30px rgba(15,23,42,.3); outline: 3px solid var(--primary); }
+        .theme-dot .dstar { position: absolute; top: 2px; right: 3px; color: #F5A524; display: flex; filter: drop-shadow(0 1px 1px rgba(0,0,0,.4)); }
+        .theme-dot .dstar svg { width: 14px; height: 14px; }
         .fdef { height: 28px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); color: var(--muted); font-family: inherit; font-size: 11.5px; display: flex; align-items: center; justify-content: center; gap: 4px; cursor: pointer; }
         .fdef svg { width: 14px; height: 14px; }
         .fdef.on { background: #FFF7E6; border-color: #FBD38D; color: #B45309; font-weight: 600; }
@@ -1422,7 +1428,7 @@
         // กรอบค่าเริ่มต้น
         const el = document.createElement('button');
         el.className = 'theme-dot' + (themeOf(acc) === 'clean' ? ' active' : '');
-        el.innerHTML = '<span>ค่าเริ่มต้น</span>';
+        el.innerHTML = '<span>พื้นฐาน</span>' + (validCustom(state.defaultTheme) ? '' : '<i class="dstar">' + ICON.star + '</i>');
         const c = document.createElement('canvas'); c.width = 120; c.height = 120;
         drawFrame(c.getContext('2d'), 120, 120, 'clean', b);
         el.style.backgroundImage = `url(${c.toDataURL()})`;
@@ -1437,7 +1443,7 @@
             const id = 'custom:' + b.id;
             const el = document.createElement('button');
             el.className = 'theme-dot' + (themeOf(acc) === id ? ' active' : '');
-            el.innerHTML = '<span></span>'; el.querySelector('span').textContent = b.name || `กรอบ ${i + 1}`; el.title = b.name || '';
+            el.innerHTML = '<span></span>' + (state.defaultTheme === id ? '<i class="dstar">' + ICON.star + '</i>' : ''); el.querySelector('span').textContent = b.name || `กรอบ ${i + 1}`; el.title = b.name || '';
             if (bgData[b.id]) el.style.backgroundImage = `url(${bgData[b.id]})`;
             el.onclick = () => { acc.theme = id; saveState(); renderThemes(); renderCard(); };
             row.appendChild(el);
@@ -1451,7 +1457,7 @@
         const list = bgList();
         document.getElementById('frameInfo').innerHTML = !list.length
             ? 'ยังไม่มีกรอบ — โหลด Layout ไปออกแบบใน Canva (1080×1920) แล้วนำเข้า'
-            : (sbUser ? 'แตะชื่อใต้รูปเพื่อตั้งชื่อ · กด ☆ ตั้งเป็นกรอบเริ่มต้นของทุกบัญชี · เก็บบน Supabase' : 'ยังไม่ล็อกอินคลาวด์ — กรอบเก็บในเครื่องนี้เท่านั้น (ล็อกอินแล้วจะอัปโหลดให้)');
+            : (sbUser ? 'กดค้างที่รูปแล้วลากเพื่อสลับลำดับ · แตะชื่อเพื่อแก้ · กด ☆ ตั้งเป็นกรอบเริ่มต้น' : 'กดค้างที่รูปแล้วลากเพื่อสลับลำดับ · ยังไม่ล็อกอินคลาวด์ — กรอบเก็บในเครื่องนี้เท่านั้น');
         const defT = validCustom(state.defaultTheme) || 'base';
         const setDefault = t => {
             state.defaultTheme = t === 'base' ? '' : t;
@@ -1480,7 +1486,7 @@
         }
         list.forEach((b, i) => {
             const item = document.createElement('div');
-            item.className = 'frame-item';
+            item.className = 'frame-item'; item.dataset.id = b.id;
             const el = document.createElement('div');
             el.className = 'frame-tile';
             if (bgData[b.id]) el.style.backgroundImage = `url(${bgData[b.id]})`;
@@ -1498,7 +1504,47 @@
                 deleteBg(b.id);
             };
             grid.appendChild(item);
+            enableDrag(item, grid);
         });
+    }
+
+    // กดค้าง (0.35 วิ) ที่รูปกรอบ แล้วลากเพื่อสลับลำดับ
+    function enableDrag(item, grid) {
+        const tile = item.querySelector('.frame-tile');
+        let timer = null, dragging = false, sx = 0, sy = 0;
+        const cancel = () => { clearTimeout(timer); timer = null; };
+        tile.addEventListener('contextmenu', e => e.preventDefault());
+        // มือถือ: ระหว่างลาก ห้ามหน้าเลื่อน (ต้องเป็น non-passive)
+        tile.addEventListener('touchmove', e => { if (dragging) e.preventDefault(); }, { passive: false });
+        tile.addEventListener('pointerdown', e => {
+            if (e.target.closest('button')) return;
+            sx = e.clientX; sy = e.clientY;
+            timer = setTimeout(() => {
+                dragging = true; item.classList.add('dragging'); grid.classList.add('sorting');
+                try { tile.setPointerCapture(e.pointerId); } catch (er) { /* ignore */ }
+                if (navigator.vibrate) navigator.vibrate(15);
+            }, 350);
+        });
+        tile.addEventListener('pointermove', e => {
+            if (!dragging) { if (timer && Math.hypot(e.clientX - sx, e.clientY - sy) > 8) cancel(); return; }
+            e.preventDefault();
+            const over = document.elementFromPoint(e.clientX, e.clientY)?.closest('.frame-item[data-id]');
+            if (!over || over === item || over.parentNode !== grid) return;
+            const items = [...grid.children], from = items.indexOf(item), to = items.indexOf(over);
+            grid.insertBefore(item, from < to ? over.nextSibling : over);
+        });
+        const end = () => {
+            cancel();
+            if (!dragging) return;
+            dragging = false; item.classList.remove('dragging'); grid.classList.remove('sorting');
+            const order = [...grid.querySelectorAll('.frame-item[data-id]')].map(el => el.dataset.id);
+            const map = new Map(bgList().map(b => [b.id, b]));
+            state.bgs = order.map(id => map.get(id)).filter(Boolean);
+            saveState(); renderFrames(); renderThemes();
+            showToast('✓ เรียงลำดับกรอบแล้ว');
+        };
+        tile.addEventListener('pointerup', end);
+        tile.addEventListener('pointercancel', end);
     }
 
     function renderCard() {
