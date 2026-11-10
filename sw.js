@@ -1,8 +1,9 @@
-const CACHE = 'promptpay-v12';
+const CACHE = 'promptpay-v13';
 const ASSETS = [
   '/',
   '/index.html',
   '/manifest.json',
+  '/icon.svg',
   '/icon-192.png',
   '/icon-512.png',
   '/apple-touch-icon.png',

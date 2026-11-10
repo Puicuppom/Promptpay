@@ -8,10 +8,11 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="พร้อมเพย์">
-    <link rel="manifest" href="/manifest.json">
-    <link rel="icon" href="/icon-192.png" type="image/png" sizes="192x192">
-    <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180">
-    <title>พร้อมเพย์</title>
+    <link rel="manifest" href="manifest.json?v=13">
+    <link rel="icon" href="icon.svg?v=13" type="image/svg+xml">
+    <link rel="icon" href="icon-192.png?v=13" type="image/png" sizes="192x192">
+    <link rel="apple-touch-icon" href="apple-touch-icon.png?v=13" sizes="180x180">
+    <title>QR รับเงิน</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -59,7 +60,7 @@
 
         .topbar { display: flex; align-items: center; justify-content: space-between; min-height: 44px; }
         .brand { display: flex; align-items: center; gap: 10px; }
-        .brand img { width: 34px; height: 34px; border-radius: 10px; box-shadow: 0 2px 8px rgba(26,86,219,.25); }
+        .brand img { width: 38px; height: 38px; border-radius: 50%; box-shadow: 0 3px 10px rgba(26,86,219,.3); }
         .topbar-title { font-weight: 700; font-size: 19px; color: var(--text); letter-spacing: .2px; }
         .topbar-title small { display: block; font-size: 11px; font-weight: 500; color: var(--muted); letter-spacing: 0; margin-top: -2px; }
         .topbar-actions { display: flex; gap: 8px; }
@@ -192,9 +193,12 @@
         .cloud-user b { display: block; font-size: 14px; }
         .cloud-user small { color: var(--muted); font-size: 12px; }
 
-        .frame-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 10px; }
+        .frame-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 10px; }
         .frame-grid:empty { display: none; }
         .frame-tile { position: relative; aspect-ratio: 9 / 16; border-radius: 10px; background: var(--surface-2) center/cover; border: 1px solid var(--line); overflow: hidden; }
+        .frame-item { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+        .frame-item .fname { width: 100%; height: 30px; border: 1px solid var(--line); border-radius: 8px; padding: 0 6px; font-family: inherit; font-size: 12px; text-align: center; color: var(--text); background: var(--surface-2); outline: none; }
+        .frame-item .fname:focus { border-color: var(--primary); background: #fff; }
         .frame-tile .lbl { position: absolute; left: 0; right: 0; bottom: 0; font-size: 11px; text-align: center; background: rgba(15,23,42,.55); color: #fff; line-height: 20px; }
         .frame-tile .cl { position: absolute; top: 4px; left: 4px; width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: #fff; box-shadow: var(--shadow); }
         .frame-tile .cl svg { width: 14px; height: 14px; }
@@ -256,7 +260,7 @@
             box-shadow: 0 8px 24px rgba(15,23,42,.14); z-index: 150; align-items: center; gap: 8px; max-width: 500px; margin: 0 auto;
         }
         .install-banner.show { display: flex; }
-        .install-banner img { width: 36px; height: 36px; border-radius: 8px; }
+        .install-banner img { width: 36px; height: 36px; border-radius: 50%; }
         .install-banner-text { flex: 1; display: flex; flex-direction: column; font-size: 13px; }
         .install-banner-text span { color: var(--muted); font-size: 12px; }
         .install-banner-btns { display: flex; gap: 6px; }
@@ -270,7 +274,7 @@
 <body>
     <div class="app">
         <div class="topbar">
-            <div class="brand"><img src="icon-192.png" alt=""><span class="topbar-title">QR รับเงิน<small>PromptPay · Thai QR</small></span></div>
+            <div class="brand"><img src="icon.svg?v=13" alt=""><span class="topbar-title">QR รับเงิน<small>PromptPay · Thai QR</small></span></div>
             <div class="topbar-actions">
                 <button class="icon-btn" id="installBtn" aria-label="ติดตั้งแอป" style="display:none;">
                     <svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
@@ -419,7 +423,7 @@
     <div class="toast" id="toast"></div>
 
     <div class="install-banner" id="installBanner">
-        <img src="icon-192.png" alt="">
+        <img src="icon.svg?v=13" alt="">
         <div class="install-banner-text">
             <strong>ติดตั้งแอป พร้อมเพย์</strong>
             <span>เปิดได้จากหน้าจอโฮม</span>
@@ -1319,7 +1323,7 @@
             const id = 'custom:' + b.id;
             const el = document.createElement('button');
             el.className = 'theme-dot' + (themeOf(acc) === id ? ' active' : '');
-            el.innerHTML = `<span>กรอบ ${i + 1}</span>`;
+            el.innerHTML = '<span></span>'; el.querySelector('span').textContent = b.name || `กรอบ ${i + 1}`; el.title = b.name || '';
             if (bgData[b.id]) el.style.backgroundImage = `url(${bgData[b.id]})`;
             el.onclick = () => { acc.theme = id; saveState(); renderThemes(); renderCard(); };
             row.appendChild(el);
@@ -1333,19 +1337,27 @@
         const list = bgList();
         document.getElementById('frameInfo').innerHTML = !list.length
             ? 'ยังไม่มีกรอบ — โหลด Layout ไปออกแบบใน Canva (1080×1920) แล้วนำเข้า'
-            : (sbUser ? 'กรอบที่นำเข้าจะเก็บบน Supabase ด้วย ใช้ได้ทุกเครื่อง' : 'ยังไม่ล็อกอินคลาวด์ — กรอบเก็บในเครื่องนี้เท่านั้น (ล็อกอินแล้วจะอัปโหลดให้)');
+            : (sbUser ? 'แตะชื่อใต้รูปเพื่อตั้งชื่อ · กรอบเก็บบน Supabase ใช้ได้ทุกเครื่อง' : 'ยังไม่ล็อกอินคลาวด์ — กรอบเก็บในเครื่องนี้เท่านั้น (ล็อกอินแล้วจะอัปโหลดให้)');
         list.forEach((b, i) => {
+            const item = document.createElement('div');
+            item.className = 'frame-item';
             const el = document.createElement('div');
             el.className = 'frame-tile';
             if (bgData[b.id]) el.style.backgroundImage = `url(${bgData[b.id]})`;
             const cloud = sbUser && b.up === sbUser.id;
-            el.innerHTML = `<span class="lbl">กรอบ ${i + 1}</span><span class="cl ${cloud ? 'on' : 'off'}" title="${cloud ? 'อยู่บนคลาวด์' : 'อยู่ในเครื่องนี้'}">${cloud ? ICON.cloudok : ICON.phone}</span><button class="x" type="button">ลบ</button>`;
+            const nm = document.createElement('input');
+            nm.className = 'fname'; nm.maxLength = 30; nm.placeholder = `กรอบ ${i + 1}`; nm.value = b.name || '';
+            nm.setAttribute('aria-label', 'ชื่อกรอบ');
+            nm.onchange = () => { b.name = nm.value.trim(); saveState(); renderThemes(); };
+            nm.onkeydown = e => { if (e.key === 'Enter') nm.blur(); };
+            item.append(el, nm);
+            el.innerHTML = `<span class="cl ${cloud ? 'on' : 'off'}" title="${cloud ? 'อยู่บนคลาวด์' : 'อยู่ในเครื่องนี้'}">${cloud ? ICON.cloudok : ICON.phone}</span><button class="x" type="button">ลบ</button>`;
             const x = el.querySelector('.x');
             x.onclick = () => {
                 if (!x.classList.contains('sure')) { x.classList.add('sure'); x.textContent = 'ยืนยัน?'; setTimeout(() => { x.classList.remove('sure'); x.textContent = 'ลบ'; }, 2500); return; }
                 deleteBg(b.id);
             };
-            grid.appendChild(el);
+            grid.appendChild(item);
         });
     }
 
@@ -1639,7 +1651,7 @@
             const id = 'bg' + uid();
             bgData[id] = c.toDataURL('image/jpeg', .82);
             if (!saveBgData()) { delete bgData[id]; return; }
-            bgList().push({ id });
+            bgList().push({ id, name: 'กรอบ ' + (bgList().length + 1) });
             const acc = activeAcc(); acc.theme = 'custom:' + id;
             saveState(); renderThemes(); renderCard(); renderFrames();
             showToast('✓ นำเข้ากรอบแล้ว' + (sbUser ? ' — กำลังอัปโหลดขึ้นคลาวด์' : ''));
@@ -1719,7 +1731,7 @@
     function setCloud(msg) { cloudMsg = msg; renderCloud(); }
     function cloudPayload() {
         const { accounts, defaultId, bgs, updatedAt } = state;
-        return { accounts, defaultId, bgs: (bgs || []).map(b => ({ id: b.id })), updatedAt };
+        return { accounts, defaultId, bgs: (bgs || []).map(b => ({ id: b.id, name: b.name || '' })), updatedAt };
     }
     async function syncNow() {
         if (!sbUser) return;
