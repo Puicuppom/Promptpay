@@ -222,6 +222,9 @@
         .frame-grid:empty { display: none; }
         .frame-tile { position: relative; aspect-ratio: 9 / 16; border-radius: 10px; background: var(--surface-2) center/cover; border: 1px solid var(--line); overflow: hidden; }
         .frame-item { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+        .fdef { height: 28px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); color: var(--muted); font-family: inherit; font-size: 11.5px; display: flex; align-items: center; justify-content: center; gap: 4px; cursor: pointer; }
+        .fdef svg { width: 14px; height: 14px; }
+        .fdef.on { background: #FFF7E6; border-color: #FBD38D; color: #B45309; font-weight: 600; }
         .frame-item .fname { width: 100%; height: 30px; border: 1px solid var(--line); border-radius: 8px; padding: 0 6px; font-family: inherit; font-size: 12px; text-align: center; color: var(--text); background: var(--surface-2); outline: none; }
         .frame-item .fname:focus { border-color: var(--primary); background: #fff; }
         .frame-tile .lbl { position: absolute; left: 0; right: 0; bottom: 0; font-size: 11px; text-align: center; background: rgba(15,23,42,.55); color: #fff; line-height: 20px; }
@@ -542,7 +545,9 @@
     };
     const bankOf = acc => BANKS[acc.bank] || BANKS.PP;
     const inkOf = b => b.ink || b.color;
-    const themeOf = acc => { const t = acc.theme; if (!t || OLD_THEMES.includes(t)) return 'clean'; if (!t.startsWith('custom:') || !(state.bgs || []).some(b => 'custom:' + b.id === t)) return 'clean'; return t; };
+    // กรอบของบัญชี: 'base' = เลือกพื้นฐานเอง, 'custom:<id>' = เลือกกรอบเอง, อื่นๆ/ว่าง = ใช้กรอบเริ่มต้น
+    const validCustom = t => t && t.startsWith('custom:') && (state.bgs || []).some(b => 'custom:' + b.id === t) ? t : null;
+    const themeOf = acc => acc.theme === 'base' ? 'clean' : (validCustom(acc.theme) || validCustom(state.defaultTheme) || 'clean');
 
     /* ================= ธีมกรอบ ================= */
     const THEME_CATS = [
@@ -1376,12 +1381,12 @@
         row.innerHTML = '';
         // กรอบค่าเริ่มต้น
         const el = document.createElement('button');
-        el.className = 'theme-dot' + (themeOf(acc).startsWith('custom:') ? '' : ' active');
+        el.className = 'theme-dot' + (themeOf(acc) === 'clean' ? ' active' : '');
         el.innerHTML = '<span>ค่าเริ่มต้น</span>';
         const c = document.createElement('canvas'); c.width = 120; c.height = 120;
         drawFrame(c.getContext('2d'), 120, 120, 'clean', b);
         el.style.backgroundImage = `url(${c.toDataURL()})`;
-        el.onclick = () => { acc.theme = 'clean'; saveState(); renderThemes(); renderCard(); };
+        el.onclick = () => { acc.theme = 'base'; saveState(); renderThemes(); renderCard(); };
         row.appendChild(el);
         renderMine(row, acc);
     }
@@ -1406,7 +1411,33 @@
         const list = bgList();
         document.getElementById('frameInfo').innerHTML = !list.length
             ? 'ยังไม่มีกรอบ — โหลด Layout ไปออกแบบใน Canva (1080×1920) แล้วนำเข้า'
-            : (sbUser ? 'แตะชื่อใต้รูปเพื่อตั้งชื่อ · กรอบเก็บบน Supabase ใช้ได้ทุกเครื่อง' : 'ยังไม่ล็อกอินคลาวด์ — กรอบเก็บในเครื่องนี้เท่านั้น (ล็อกอินแล้วจะอัปโหลดให้)');
+            : (sbUser ? 'แตะชื่อใต้รูปเพื่อตั้งชื่อ · กด ☆ ตั้งเป็นกรอบเริ่มต้นของทุกบัญชี · เก็บบน Supabase' : 'ยังไม่ล็อกอินคลาวด์ — กรอบเก็บในเครื่องนี้เท่านั้น (ล็อกอินแล้วจะอัปโหลดให้)');
+        const defT = validCustom(state.defaultTheme) || 'base';
+        const setDefault = t => {
+            state.defaultTheme = t === 'base' ? '' : t;
+            // ทุกบัญชีเปลี่ยนมาใช้กรอบเริ่มต้นนี้
+            state.accounts.forEach(a => { a.theme = ''; });
+            saveState(); renderFrames(); renderThemes(); renderCard();
+            showToast('✓ ตั้งเป็นกรอบเริ่มต้นแล้ว');
+        };
+        const defBtn = (t) => {
+            const on = defT === t;
+            const btn = document.createElement('button');
+            btn.type = 'button'; btn.className = 'fdef' + (on ? ' on' : '');
+            btn.innerHTML = (on ? ICON.star : ICON.staro) + '<span>' + (on ? 'เริ่มต้น' : 'ตั้งเริ่มต้น') + '</span>';
+            btn.onclick = () => setDefault(t);
+            return btn;
+        };
+        if (list.length) {
+            const item = document.createElement('div'); item.className = 'frame-item';
+            const el = document.createElement('div'); el.className = 'frame-tile';
+            const c = document.createElement('canvas'); c.width = 90; c.height = 160;
+            drawFrame(c.getContext('2d'), 90, 160, 'clean', BANKS.PP);
+            el.style.backgroundImage = `url(${c.toDataURL()})`;
+            el.innerHTML = '<span class="lbl">พื้นฐาน</span>';
+            item.append(el, defBtn('base'));
+            grid.appendChild(item);
+        }
         list.forEach((b, i) => {
             const item = document.createElement('div');
             item.className = 'frame-item';
@@ -1419,7 +1450,7 @@
             nm.setAttribute('aria-label', 'ชื่อกรอบ');
             nm.onchange = () => { b.name = nm.value.trim(); saveState(); renderThemes(); };
             nm.onkeydown = e => { if (e.key === 'Enter') nm.blur(); };
-            item.append(el, nm);
+            item.append(el, nm, defBtn('custom:' + b.id));
             el.innerHTML = `<span class="cl ${cloud ? 'on' : 'off'}" title="${cloud ? 'อยู่บนคลาวด์' : 'อยู่ในเครื่องนี้'}">${cloud ? ICON.cloudok : ICON.phone}</span><button class="x" type="button">ลบ</button>`;
             const x = el.querySelector('.x');
             x.onclick = () => {
@@ -1479,7 +1510,7 @@
     }
 
     function openEditor(acc) {
-        editing = acc ? { ...acc } : { id: uid(), type: 'phone', bank: 'PP', name: activeAcc()?.name || '', ppId: '', accNo: '', theme: 'carbon', qr: '' };
+        editing = acc ? { ...acc } : { id: uid(), type: 'phone', bank: 'PP', name: activeAcc()?.name || '', ppId: '', accNo: '', theme: '', qr: '' };
         editing._isNew = !acc;
         document.getElementById('editTitle').textContent = acc ? 'แก้ไขบัญชี' : 'เพิ่มบัญชี';
         document.getElementById('fBank').value = editing.bank;
@@ -1731,7 +1762,8 @@
     function deleteBg(id) {
         state.bgs = bgList().filter(b => b.id !== id);
         const gone = 'custom:' + id;
-        state.accounts.forEach(a => { if (a.theme === gone) a.theme = 'clean'; });
+        state.accounts.forEach(a => { if (a.theme === gone) a.theme = ''; });
+        if (state.defaultTheme === gone) state.defaultTheme = '';
         const path = bgPath(id);
         delete bgData[id]; delete bgImgs[id]; saveBgData();
         saveState(); renderThemes(); renderCard(); renderFrames();
@@ -1800,8 +1832,8 @@
     }
     function setCloud(msg) { cloudMsg = msg; renderCloud(); }
     function cloudPayload() {
-        const { accounts, defaultId, bgs, updatedAt } = state;
-        return { accounts, defaultId, bgs: (bgs || []).map(b => ({ id: b.id, name: b.name || '' })), updatedAt };
+        const { accounts, defaultId, defaultTheme, bgs, updatedAt } = state;
+        return { accounts, defaultId, defaultTheme: defaultTheme || '', bgs: (bgs || []).map(b => ({ id: b.id, name: b.name || '' })), updatedAt };
     }
     let syncing = false;
     const withTimeout = (p, ms = 20000) => Promise.race([p, new Promise((_, rej) => setTimeout(() => rej(new Error('หมดเวลาเชื่อมต่อ')), ms))]);
