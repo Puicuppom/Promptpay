@@ -1765,7 +1765,8 @@
         if (typeof supabase === 'undefined') { cloudMsg = 'โหลดระบบคลาวด์ไม่ได้ (ออฟไลน์?)'; renderCloud(); return; }
         sb = supabase.createClient(SB_URL, SB_KEY);
         sb.auth.getSession().then(({ data }) => onAuth(data.session));
-        sb.auth.onAuthStateChange((_e, s) => onAuth(s));
+        // ห้ามเรียก Supabase ใน callback ตรงๆ (supabase-js จะ deadlock) — เลื่อนออกไปก่อน
+        sb.auth.onAuthStateChange((_e, s) => { setTimeout(() => onAuth(s), 0); });
     }
     async function onAuth(session) {
         const u = session ? session.user : null;
@@ -1778,10 +1779,18 @@
         const { accounts, defaultId, bgs, updatedAt } = state;
         return { accounts, defaultId, bgs: (bgs || []).map(b => ({ id: b.id, name: b.name || '' })), updatedAt };
     }
+    let syncing = false;
+    const withTimeout = (p, ms = 20000) => Promise.race([p, new Promise((_, rej) => setTimeout(() => rej(new Error('หมดเวลาเชื่อมต่อ')), ms))]);
     async function syncNow() {
-        if (!sbUser) return;
+        if (!sbUser || syncing) return;
+        syncing = true;
+        try { await syncInner(); }
+        catch (e) { setCloud('ซิงก์ไม่สำเร็จ: ' + (e.message || e)); }
+        finally { syncing = false; }
+    }
+    async function syncInner() {
         setCloud('กำลังซิงก์...');
-        const { data, error } = await sb.from(SB_TABLE).select('data, updated_at').maybeSingle();
+        const { data, error } = await withTimeout(sb.from(SB_TABLE).select('data, updated_at').eq('user_id', sbUser.id).maybeSingle());
         if (error) return setCloud('ซิงก์ไม่สำเร็จ: ' + error.message);
         const remoteT = data ? new Date(data.updated_at).getTime() : 0;
         if (data && data.data && Array.isArray(data.data.accounts) && (!state.updatedAt || remoteT > state.updatedAt)) {
@@ -1820,10 +1829,10 @@
         try {
             await pushBgs();
             persistLocal();
-            const { error } = await sb.from(SB_TABLE).upsert({ user_id: sbUser.id, data: cloudPayload(), updated_at: new Date(state.updatedAt || Date.now()).toISOString() });
+            const { error } = await withTimeout(sb.from(SB_TABLE).upsert({ user_id: sbUser.id, data: cloudPayload(), updated_at: new Date(state.updatedAt || Date.now()).toISOString() }, { onConflict: 'user_id' }));
             if (error) return setCloud('บันทึกขึ้นคลาวด์ไม่สำเร็จ: ' + error.message);
             lastSync = new Date(); setCloud('✓ บันทึกบนคลาวด์แล้ว'); renderFrames();
-        } catch (e) { setCloud('ออฟไลน์ — จะซิงก์ใหม่ภายหลัง'); }
+        } catch (e) { setCloud('บันทึกไม่สำเร็จ: ' + (e.message || 'ออฟไลน์')); }
     }
     function schedulePush() { if (!sbUser) return; clearTimeout(pushTimer); pushTimer = setTimeout(pushNow, 1500); }
 
