@@ -229,8 +229,9 @@
         .theme-dot .dstar { position: absolute; top: 2px; right: 3px; color: #F5A524; display: flex; filter: drop-shadow(0 1px 1px rgba(0,0,0,.4)); }
         .theme-dot .dstar svg { width: 14px; height: 14px; }
         .fdef { height: 28px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); color: var(--muted); font-family: inherit; font-size: 11.5px; display: flex; align-items: center; justify-content: center; gap: 4px; cursor: pointer; }
-        .fdef svg { width: 14px; height: 14px; }
-        .fdef.on { background: #FFF7E6; border-color: #FBD38D; color: #B45309; font-weight: 600; }
+        .fdef svg { width: 18px; height: 18px; }
+        .fdef { color: #CBD5E1; }
+        .fdef.on { background: #FFF7E6; border-color: #FBD38D; color: #F5A524; }
         .frame-item .fname { width: 100%; height: 30px; border: 1px solid var(--line); border-radius: 8px; padding: 0 6px; font-family: inherit; font-size: 12px; text-align: center; color: var(--text); background: var(--surface-2); outline: none; }
         .frame-item .fname:focus { border-color: var(--primary); background: #fff; }
         .frame-tile .lbl { position: absolute; left: 0; right: 0; bottom: 0; font-size: 11px; text-align: center; background: rgba(15,23,42,.55); color: #fff; line-height: 20px; }
@@ -1470,7 +1471,8 @@
             const on = defT === t;
             const btn = document.createElement('button');
             btn.type = 'button'; btn.className = 'fdef' + (on ? ' on' : '');
-            btn.innerHTML = (on ? ICON.star : ICON.staro) + '<span>' + (on ? 'เริ่มต้น' : 'ตั้งเริ่มต้น') + '</span>';
+            btn.innerHTML = on ? ICON.star : ICON.staro;
+            btn.title = on ? 'กรอบเริ่มต้น' : 'ตั้งเป็นกรอบเริ่มต้น'; btn.setAttribute('aria-label', btn.title);
             btn.onclick = () => setDefault(t);
             return btn;
         };
@@ -1508,43 +1510,51 @@
         });
     }
 
-    // กดค้าง (0.35 วิ) ที่รูปกรอบ แล้วลากเพื่อสลับลำดับ
+    // กดค้าง (0.35 วิ) ที่รูปกรอบ แล้วลากไปวางตำแหน่งไหนก็ได้
+    // ฟังเหตุการณ์ที่ document ระหว่างลาก — ย้าย DOM แล้ว pointer capture จะหลุด ถ้าฟังที่ tile จะลากได้แค่ช่องเดียว
     function enableDrag(item, grid) {
         const tile = item.querySelector('.frame-tile');
-        let timer = null, dragging = false, sx = 0, sy = 0;
-        const cancel = () => { clearTimeout(timer); timer = null; };
+        let timer = null, dragging = false, sx = 0, sy = 0, pid = null;
         tile.addEventListener('contextmenu', e => e.preventDefault());
-        // มือถือ: ระหว่างลาก ห้ามหน้าเลื่อน (ต้องเป็น non-passive)
-        tile.addEventListener('touchmove', e => { if (dragging) e.preventDefault(); }, { passive: false });
-        tile.addEventListener('pointerdown', e => {
-            if (e.target.closest('button')) return;
-            sx = e.clientX; sy = e.clientY;
-            timer = setTimeout(() => {
-                dragging = true; item.classList.add('dragging'); grid.classList.add('sorting');
-                try { tile.setPointerCapture(e.pointerId); } catch (er) { /* ignore */ }
-                if (navigator.vibrate) navigator.vibrate(15);
-            }, 350);
-        });
-        tile.addEventListener('pointermove', e => {
-            if (!dragging) { if (timer && Math.hypot(e.clientX - sx, e.clientY - sy) > 8) cancel(); return; }
+        const onMove = e => {
+            if (e.pointerId !== pid) return;
+            if (!dragging) { if (Math.hypot(e.clientX - sx, e.clientY - sy) > 8) stop(false); return; }
             e.preventDefault();
-            const over = document.elementFromPoint(e.clientX, e.clientY)?.closest('.frame-item[data-id]');
+            const hit = document.elementFromPoint(e.clientX, e.clientY);
+            const over = hit && hit.closest('.frame-item[data-id]');
             if (!over || over === item || over.parentNode !== grid) return;
             const items = [...grid.children], from = items.indexOf(item), to = items.indexOf(over);
             grid.insertBefore(item, from < to ? over.nextSibling : over);
-        });
-        const end = () => {
-            cancel();
-            if (!dragging) return;
-            dragging = false; item.classList.remove('dragging'); grid.classList.remove('sorting');
+        };
+        const noScroll = e => { if (dragging) e.preventDefault(); };
+        const onUp = e => { if (e.pointerId === pid) stop(true); };
+        const stop = save => {
+            clearTimeout(timer); timer = null;
+            document.removeEventListener('pointermove', onMove);
+            document.removeEventListener('pointerup', onUp);
+            document.removeEventListener('pointercancel', onUp);
+            document.removeEventListener('touchmove', noScroll);
+            const was = dragging; dragging = false; pid = null;
+            item.classList.remove('dragging'); grid.classList.remove('sorting');
+            if (!was || !save) return;
             const order = [...grid.querySelectorAll('.frame-item[data-id]')].map(el => el.dataset.id);
             const map = new Map(bgList().map(b => [b.id, b]));
             state.bgs = order.map(id => map.get(id)).filter(Boolean);
             saveState(); renderFrames(); renderThemes();
             showToast('✓ เรียงลำดับกรอบแล้ว');
         };
-        tile.addEventListener('pointerup', end);
-        tile.addEventListener('pointercancel', end);
+        tile.addEventListener('pointerdown', e => {
+            if (e.target.closest('button') || pid !== null) return;
+            sx = e.clientX; sy = e.clientY; pid = e.pointerId;
+            document.addEventListener('pointermove', onMove, { passive: false });
+            document.addEventListener('pointerup', onUp);
+            document.addEventListener('pointercancel', onUp);
+            document.addEventListener('touchmove', noScroll, { passive: false });
+            timer = setTimeout(() => {
+                dragging = true; item.classList.add('dragging'); grid.classList.add('sorting');
+                if (navigator.vibrate) navigator.vibrate(15);
+            }, 350);
+        });
     }
 
     function renderCard() {
