@@ -644,10 +644,17 @@
         return defaultState();
     }
 
+    // ลบรายการ id ซ้ำ (เกิดจากบั๊กลากสลับเวอร์ชันก่อน)
+    function dedupeState() {
+        const uniq = arr => { const seen = new Set(); return (arr || []).filter(x => x && !seen.has(x.id) && seen.add(x.id)); };
+        state.accounts = uniq(state.accounts);
+        if (state.bgs) state.bgs = uniq(state.bgs);
+    }
     let state = loadState();
     if (!state.defaultId || !state.accounts.some(a => a.id === state.defaultId)) state.defaultId = state.accounts[0].id;
     state.activeId = state.defaultId; // เปิดแอปมาแสดงบัญชีเริ่มต้นก่อน
     { const i = state.accounts.findIndex(a => a.id === state.defaultId); if (i > 0) state.accounts.unshift(state.accounts.splice(i, 1)[0]); }
+    dedupeState();
     // ย้ายค่าจากเวอร์ชันก่อน: กรอบเริ่มต้นที่เคยตั้ง → ย้ายไปอันแรก
     if (state.defaultTheme && state.bgs) {
         const i = state.bgs.findIndex(x => 'custom:' + x.id === state.defaultTheme);
@@ -1465,6 +1472,7 @@
         showToast('✓ ตั้งเป็นกรอบเริ่มต้นแล้ว');
     }
     function renderFrames() {
+        if (dragActive) { pendingRender = true; return; }
         const grid = document.getElementById('frameGrid'); if (!grid) return;
         grid.innerHTML = '';
         const list = bgList();
@@ -1500,20 +1508,25 @@
     function dropFrames(order) {
         const was0 = bgList()[0]?.id;
         const map = new Map(bgList().map(b => [b.id, b]));
+        order = [...new Set(order)];
         state.bgs = order.map(id => map.get(id)).filter(Boolean);
+        bgList().forEach(b => { if (!order.includes(b.id)) state.bgs.push(b); });
         saveState(); renderFrames(); renderThemes();
         showToast(order[0] !== was0 ? '✓ เรียงลำดับแล้ว — อันแรกเป็นกรอบเริ่มต้น' : '✓ เรียงลำดับกรอบแล้ว');
     }
     function dropAccounts(order) {
         const was0 = state.accounts[0]?.id;
-        const map = new Map(state.accounts.map(a => [a.id, a]));
+        const map = new Map(state.accounts.map(a => [a.id, a])), prev = state.accounts;
+        order = [...new Set(order)];
         state.accounts = order.map(id => map.get(id)).filter(Boolean);
+        prev.forEach(a => { if (!order.includes(a.id)) state.accounts.push(a); });
         state.defaultId = state.accounts[0].id; // บัญชีแรก = บัญชีเริ่มต้น
         saveState(); renderList(); renderChips();
         showToast(order[0] !== was0 ? '✓ เรียงลำดับแล้ว — อันแรกเป็นบัญชีเริ่มต้น' : '✓ เรียงลำดับบัญชีแล้ว');
     }
     // กดค้าง (0.35 วิ) ที่รูปกรอบ แล้วลากไปวางตำแหน่งไหนก็ได้
     // ฟังเหตุการณ์ที่ document ระหว่างลาก — ย้าย DOM แล้ว pointer capture จะหลุด ถ้าฟังที่ tile จะลากได้แค่ช่องเดียว
+    let dragActive = false, pendingRender = false; // ระหว่างลาก ห้ามวาดรายการใหม่ (ไม่งั้นจะเกิดรายการซ้ำ)
     function enableDrag(item, grid, handleSel = '.frame-tile', onDrop = dropFrames) {
         const tile = item.querySelector(handleSel);
         let timer = null, dragging = false, sx = 0, sy = 0, pid = null;
@@ -1536,9 +1549,10 @@
             document.removeEventListener('pointerup', onUp);
             document.removeEventListener('pointercancel', onUp);
             document.removeEventListener('touchmove', noScroll);
-            const was = dragging; dragging = false; pid = null;
+            const was = dragging; dragging = false; pid = null; dragActive = false;
             item.classList.remove('dragging'); grid.classList.remove('sorting');
-            if (!was || !save) return;
+            if (!was || !save) { if (pendingRender) { pendingRender = false; renderFrames(); } return; }
+            pendingRender = false;
             onDrop([...grid.querySelectorAll(':scope > [data-id]')].map(el => el.dataset.id));
         };
         tile.addEventListener('pointerdown', e => {
@@ -1549,7 +1563,7 @@
             document.addEventListener('pointercancel', onUp);
             document.addEventListener('touchmove', noScroll, { passive: false });
             timer = setTimeout(() => {
-                dragging = true; item.classList.add('dragging'); grid.classList.add('sorting');
+                dragging = true; dragActive = true; item.classList.add('dragging'); grid.classList.add('sorting');
                 if (navigator.vibrate) navigator.vibrate(15);
             }, 350);
         });
@@ -1702,6 +1716,7 @@
 
     /* ================= list ================= */
     function renderList() {
+        if (dragActive) { pendingRender = true; return; }
         const list = document.getElementById('accList');
         list.innerHTML = '';
         const n = state.accounts.length;
@@ -1946,6 +1961,7 @@
         if (data && data.data && Array.isArray(data.data.accounts) && (!state.updatedAt || remoteT > state.updatedAt)) {
             state = { ...state, ...data.data, updatedAt: remoteT };
             if (!state.accounts.some(a => a.id === state.defaultId)) state.defaultId = state.accounts[0].id;
+            dedupeState();
             { const i = state.accounts.findIndex(a => a.id === state.defaultId); if (i > 0) state.accounts.unshift(state.accounts.splice(i, 1)[0]); }
             state.activeId = state.defaultId;
             persistLocal();
